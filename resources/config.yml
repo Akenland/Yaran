@@ -1,0 +1,15 @@
+# Yaran World Generator by Kyle Nanakdewa
+# Configuration
+
+# Thank you for using Yaran! See my other plugins at http://plugins.akenland.com/
+
+# Don't change the formatting of this file, or Bukkit will complain. To reset this config to default, just delete it.
+# We recommend using VS Code (https://code.visualstudio.com/) to modify this file, as it will help you with formatting.
+# Do NOT use tabs (tab indent) - use spaces. VS Code will automatically insert spaces, but other text editors won't.
+
+# Full documentation can be found at http://akenland.com/plugins/yaran
+# After editing this file, use "/yaran reload" to load your changes into the server.
+
+
+# The websocket URL (endpoint) for the Atlas server. Default "ws://localhost:8080".
+ws-url: ws://localhost:8080

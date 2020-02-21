@@ -1,0 +1,14 @@
+name: Yaran
+version: 1.0
+description: The Akenland world generator.
+author: Kyle Nanakdewa
+website: https://plugins.akenland.com/
+
+api-version: 1.14
+main: com.kylenanakdewa.yaran.YaranPlugin
+
+commands:
+  yaran:
+    description: View plugin information, and reload the plugin.
+    permission: yaran.admin
+    usage: /yaran <version/reload>
