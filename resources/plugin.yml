@@ -6,6 +6,7 @@ website: https://plugins.akenland.com/
 
 api-version: 1.14
 main: com.kylenanakdewa.yaran.YaranPlugin
+load: startup
 
 commands:
   yaran:

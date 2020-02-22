@@ -1,5 +1,8 @@
 package com.kylenanakdewa.yaran;
 
+import com.kylenanakdewa.yaran.generators.MinimalChunkGenerator;
+
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -38,6 +41,17 @@ public final class YaranPlugin extends JavaPlugin {
 	private void loadConfig() {
 		reloadConfig();
 
+	}
+
+	@Override
+	public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
+		switch (id.toLowerCase()) {
+			case "minimal":
+				return new MinimalChunkGenerator();
+
+			default:
+				return super.getDefaultWorldGenerator(worldName, id);
+		}
 	}
 
 }
