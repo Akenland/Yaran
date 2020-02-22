@@ -13,3 +13,22 @@
 
 # The websocket URL (endpoint) for the Atlas server. Default "ws://localhost:8080".
 ws-url: ws://localhost:8080
+
+generator-settings:
+  simplex-octave:
+    # Amount of octaves to create. Default 8.
+    octaves: 8
+    # Sets the scale used for all coordinates passed to this generator. This is the equivalent to setting each coordinate to the specified value. Default 0.005.
+    scale: 0.005
+
+    # How much to alter the frequency by each octave. Default 0.5.
+    frequency: 0.5
+    # How much to alter the amplitude by each octave. Default 0.5.
+    amplitude: 0.5
+    # If true, normalize the value to [-1, 1]. Default true.
+    normalize: true
+
+    # The maximum world height above the origin height. Default 15.
+    maximum-height: 15
+    # The origin height - the lowest point of the world. Default 50.
+    origin-height: 50

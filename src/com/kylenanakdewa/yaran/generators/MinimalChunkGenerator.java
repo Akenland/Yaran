@@ -9,6 +9,8 @@ import org.bukkit.generator.ChunkGenerator;
  * The most minimal chunk generator possible in Bukkit. Simply gets the chunk
  * data from the server, and passes it into the generator. Does not do any
  * processing.
+ * <p>
+ * This creates a completely empty (void) world. No blocks, but does include biomes.
  *
  * @author Kyle Nanakdewa
  */

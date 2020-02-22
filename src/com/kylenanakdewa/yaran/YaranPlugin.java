@@ -1,6 +1,7 @@
 package com.kylenanakdewa.yaran;
 
 import com.kylenanakdewa.yaran.generators.MinimalChunkGenerator;
+import com.kylenanakdewa.yaran.generators.SimplexOctaveChunkGenerator;
 
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,13 +35,13 @@ public final class YaranPlugin extends JavaPlugin {
 		// Load config
 		saveDefaultConfig();
 		loadConfig();
-
 	}
 
 	/** Retrieve values from config. */
 	private void loadConfig() {
 		reloadConfig();
 
+		SimplexOctaveChunkGenerator.setParameters(getConfig().getConfigurationSection("generator-settings"));
 	}
 
 	@Override
@@ -48,6 +49,8 @@ public final class YaranPlugin extends JavaPlugin {
 		switch (id.toLowerCase()) {
 			case "minimal":
 				return new MinimalChunkGenerator();
+			case "simplex-octave":
+				return new SimplexOctaveChunkGenerator();
 
 			default:
 				return super.getDefaultWorldGenerator(worldName, id);

@@ -66,7 +66,7 @@ public final class YaranCommands implements TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         // Main command - return each sub-command
         if (args.length <= 1)
-            return Arrays.asList("version", "reload");
+            return Arrays.asList("version", "reload", "create");
         // Otherwise return nothing
         return Arrays.asList("");
     }
