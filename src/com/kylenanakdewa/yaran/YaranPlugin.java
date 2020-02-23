@@ -1,6 +1,7 @@
 package com.kylenanakdewa.yaran;
 
 import com.kylenanakdewa.yaran.generators.MinimalChunkGenerator;
+import com.kylenanakdewa.yaran.generators.SimplexNoiseChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctave3dChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctaveChunkGenerator;
 
@@ -54,6 +55,8 @@ public final class YaranPlugin extends JavaPlugin {
 				return new SimplexOctaveChunkGenerator();
 			case "simplex-octave-3d":
 				return new SimplexOctave3dChunkGenerator();
+			case "simplex-noise":
+				return new SimplexNoiseChunkGenerator();
 
 			default:
 				return super.getDefaultWorldGenerator(worldName, id);
