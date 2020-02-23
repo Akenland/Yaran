@@ -24,6 +24,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     protected static List<Double> frequencies;
     /**
+     * The size of each frequency. Must be the same number of values as the list of frequencies.
+     */
+    protected static List<Double> sizes;
+    /**
      * The exponent to raise noise to.
      */
     protected static double exponent;
@@ -41,6 +45,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         configSection = configSection.getConfigurationSection("simplex-noise");
 
         frequencies = configSection.getDoubleList("frequencies");
+        sizes = configSection.getDoubleList("sizes");
         exponent = configSection.getDouble("exponent");
 
         amplitude = configSection.getInt("amplitude");
@@ -65,9 +70,11 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 // Generate noise at various frequencies (octaves)
                 double noise = 0;
                 for (double frequency : frequencies) {
+                    double size = sizes.get(frequencies.indexOf(frequency));
+
                     double unshiftedNoise = generator.noise(worldX * frequency, worldZ * frequency);
                     unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
-                    noise += (1 / frequency) * unshiftedNoise;
+                    noise += size * unshiftedNoise;
                 }
 
                 // Raise noise to a power (redistribution)
