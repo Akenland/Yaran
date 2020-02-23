@@ -11,10 +11,8 @@
 # After editing this file, use "/yaran reload" to load your changes into the server.
 
 
-# The websocket URL (endpoint) for the Atlas server. Default "ws://localhost:8080".
-ws-url: ws://localhost:8080
-
 generator-settings:
+
   simplex-octave:
     # Amount of octaves to create. Default 8.
     octaves: 8
@@ -39,3 +37,17 @@ generator-settings:
     enable-3d: true
     # The threshold for 3D cutouts. Default 0.25.
     cutout-threshold: 0.25
+
+  simplex-noise:
+    # The frequencies to use. At least one is required. More will increase terrain variation.
+    frequencies:
+      - 1
+      - 2
+      - 4
+    # The exponent to raise noise to.
+    exponent: 1
+
+    # How far the terrain can be above/below the origin height.
+    amplitude: 15
+    # The origin height. Terrain will be centered on this height.
+    origin-height: 50
