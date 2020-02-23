@@ -59,6 +59,11 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
      */
     private static boolean enable3d;
 
+    /**
+     * The threshold for 3D cutouts.
+     */
+    private static double cutoutThreshold;
+
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-octave");
 
@@ -74,6 +79,7 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
         exponent = configSection.getDouble("exponent");
 
         enable3d = configSection.getBoolean("enable-3d");
+        cutoutThreshold = configSection.getDouble("cutout-threshold");
     }
 
     @Override
@@ -100,17 +106,8 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
                         double noise3d = generator.noise(chunkX * 16 + x, y, chunkZ * 16 + z, frequency, amplitude,
                                 true);
 
-                        switch ((int) Math.round(noise3d)) {
-                            case -1:
-                                chunk.setBlock(x, y, z, Material.AIR);
-                                break;
-                            case 0:
-                                break;
-                            case 1:
-                                chunk.setBlock(x, y, z, Material.STONE);
-                                break;
-                            default:
-                                break;
+                        if (noise3d > cutoutThreshold) {
+                            chunk.setBlock(x, y, z, Material.AIR);
                         }
                     }
                 }
