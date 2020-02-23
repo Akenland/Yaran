@@ -32,3 +32,5 @@ generator-settings:
     maximum-height: 15
     # The origin height - the lowest point of the world. Default 50.
     origin-height: 50
+    # The exponent to raise heights to. Default 1.
+    exponent: 1

@@ -49,6 +49,10 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
      * The origin height - the lowest point of the world.
      */
     private static int originHeight;
+    /**
+     * The exponent to raise heights to.
+     */
+    private static double exponent;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-octave");
@@ -62,6 +66,7 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
 
         maximumHeight = configSection.getInt("maximum-height");
         originHeight = configSection.getInt("origin-height");
+        exponent = configSection.getDouble("exponent");
     }
 
     @Override
@@ -74,7 +79,7 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 double noise = generator.noise(chunkX * 16 + x, chunkZ * 16 + z, frequency, amplitude, normalize);
-                int height = (int) ((noise + 1) * maximumHeight + originHeight);
+                int height = (int) (Math.pow(noise + 1, exponent) * maximumHeight + originHeight);
 
                 // Place blocks
                 chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
