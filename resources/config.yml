@@ -34,3 +34,6 @@ generator-settings:
     origin-height: 50
     # The exponent to raise heights to. Default 1.
     exponent: 1
+
+    # Whether to enable the 3D simplex octave generator.
+    enable-3d: true

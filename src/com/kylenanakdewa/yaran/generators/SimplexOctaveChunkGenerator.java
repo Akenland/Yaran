@@ -54,6 +54,11 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
      */
     private static double exponent;
 
+    /**
+     * Whether to enable the 3D simplex octave generator.
+     */
+    private static boolean enable3d;
+
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-octave");
 
@@ -67,6 +72,8 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
         maximumHeight = configSection.getInt("maximum-height");
         originHeight = configSection.getInt("origin-height");
         exponent = configSection.getDouble("exponent");
+
+        enable3d = configSection.getBoolean("enable-3d");
     }
 
     @Override
@@ -87,6 +94,26 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
                 for (int i = height - 2; i > 0; i--)
                     chunk.setBlock(x, i, z, Material.STONE);
                 chunk.setBlock(x, 0, z, Material.BEDROCK);
+
+                if (enable3d) {
+                    for (int y = 0; y < 255; y++) {
+                        double noise3d = generator.noise(chunkX * 16 + x, y, chunkZ * 16 + z, frequency, amplitude,
+                                true);
+
+                        switch ((int) Math.round(noise3d)) {
+                            case -1:
+                                chunk.setBlock(x, y, z, Material.AIR);
+                                break;
+                            case 0:
+                                break;
+                            case 1:
+                                chunk.setBlock(x, y, z, Material.STONE);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
         }
 
