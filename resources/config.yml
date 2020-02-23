@@ -37,3 +37,5 @@ generator-settings:
 
     # Whether to enable the 3D simplex octave generator.
     enable-3d: true
+    # The threshold for 3D cutouts. Default 0.25.
+    cutout-threshold: 0.25

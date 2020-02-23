@@ -21,48 +21,48 @@ public class SimplexOctaveChunkGenerator extends ChunkGenerator {
     /**
      * Amount of octaves to create.
      */
-    private static int octaves;
+    protected static int octaves;
     /**
      * Sets the scale used for all coordinates passed to this generator. This is the
      * equivalent to setting each coordinate to the specified value.
      */
-    private static double scale;
+    protected static double scale;
 
     /**
      * How much to alter the frequency by each octave.
      */
-    private static double frequency;
+    protected static double frequency;
     /**
      * How much to alter the amplitude by each octave.
      */
-    private static double amplitude;
+    protected static double amplitude;
     /**
      * If true, normalize the value to [-1, 1].
      */
-    private static boolean normalize;
+    protected static boolean normalize;
 
     /**
      * The maximum world height above the origin height.
      */
-    private static int maximumHeight;
+    protected static int maximumHeight;
     /**
      * The origin height - the lowest point of the world.
      */
-    private static int originHeight;
+    protected static int originHeight;
     /**
      * The exponent to raise heights to.
      */
-    private static double exponent;
+    protected static double exponent;
 
     /**
      * Whether to enable the 3D simplex octave generator.
      */
-    private static boolean enable3d;
+    protected static boolean enable3d;
 
     /**
      * The threshold for 3D cutouts.
      */
-    private static double cutoutThreshold;
+    protected static double cutoutThreshold;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-octave");
