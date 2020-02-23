@@ -5,6 +5,7 @@ import com.kylenanakdewa.yaran.generators.SimplexNoiseChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctave3dChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctaveChunkGenerator;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -43,7 +44,9 @@ public final class YaranPlugin extends JavaPlugin {
 	private void loadConfig() {
 		reloadConfig();
 
-		SimplexOctaveChunkGenerator.setParameters(getConfig().getConfigurationSection("generator-settings"));
+		ConfigurationSection generatorSettings = getConfig().getConfigurationSection("generator-settings");
+		SimplexOctaveChunkGenerator.setParameters(generatorSettings);
+		SimplexNoiseChunkGenerator.setParameters(generatorSettings);
 	}
 
 	@Override
