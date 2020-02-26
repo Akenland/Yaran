@@ -44,6 +44,11 @@ generator-settings:
       - 1
       - 2
       - 4
+    # The size of each frequency. Must be the same number of values as the list of frequencies.
+    sizes:
+      - 1
+      - 0.5
+      - 0.25
     # The exponent to raise noise to.
     exponent: 1
 

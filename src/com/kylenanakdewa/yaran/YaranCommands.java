@@ -1,12 +1,16 @@
 package com.kylenanakdewa.yaran;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.generator.ChunkGenerator;
 
 /**
@@ -40,7 +44,9 @@ public final class YaranCommands implements TabExecutor {
         }
 
         // Create world command
-        if (args.length == 4 && args[0].equalsIgnoreCase("create") && sender.hasPermission("yaenom.admin")) {
+        if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
+            plugin.reload();
+
             String generatorId = args[1];
             String worldName = args[2];
             long seed = Long.parseLong(args[3]);
@@ -57,6 +63,53 @@ public final class YaranCommands implements TabExecutor {
             return true;
         }
 
+        // Re-create world command
+        if (args.length == 2 && args[0].equalsIgnoreCase("recreate")) {
+            plugin.reload();
+
+            String worldName = args[1];
+            World oldWorld = plugin.getServer().getWorld(worldName);
+            ChunkGenerator generator = oldWorld.getGenerator();
+            long seed = oldWorld.getSeed();
+
+            // Teleport players out of old world
+            boolean isSenderInWorld = false;
+            for (LivingEntity entity : oldWorld.getLivingEntities()) {
+                if (entity instanceof Player) {
+                    entity.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
+                }
+                if(entity.equals(sender)){
+                    isSenderInWorld = true;
+                }
+            }
+
+            // Unload old world
+            if (!plugin.getServer().unloadWorld(oldWorld, false)) {
+                sender.sendMessage("Unable to unload world " + worldName);
+                return false;
+            }
+
+            // Delete old world
+            if (!new File(plugin.getServer().getWorldContainer(), worldName).delete()) {
+                sender.sendMessage("Unable to delete world " + worldName);
+                return false;
+            }
+
+            sender.sendMessage("Creating world using generator " + generator.getClass().getSimpleName() + ", name "
+                    + worldName + ", seed " + seed);
+
+            WorldCreator creator = new WorldCreator(worldName).generator(generator).seed(seed);
+            World newWorld = plugin.getServer().createWorld(creator);
+
+            // Automatically return sender to recreated world, if they were in it previously
+            if(isSenderInWorld){
+                ((LivingEntity) sender).teleport(newWorld.getSpawnLocation());
+            }
+
+            sender.sendMessage("World created. Use /world " + worldName + " to access it.");
+            return true;
+        }
+
         // Invalid command
         sender.sendMessage("Invalid arguments.");
         return false;
@@ -64,9 +117,15 @@ public final class YaranCommands implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        // Create world command
+        if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
+            return Arrays.asList("simplex-noise", "simplex-octave", "simplex-octave-3d", "minimal");
+        }
+
         // Main command - return each sub-command
         if (args.length <= 1)
-            return Arrays.asList("version", "reload", "create");
+            return Arrays.asList("version", "reload", "create", "recreate");
+
         // Otherwise return nothing
         return Arrays.asList("");
     }
