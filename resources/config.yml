@@ -50,9 +50,14 @@ generator-settings:
       - 0.5
       - 0.25
     # The exponent to raise noise to.
-    exponent: 1
+    exponent: 3
 
     # How far the terrain can be above/below the origin height.
-    amplitude: 15
+    amplitude: 1
     # The origin height. Terrain will be centered on this height.
     origin-height: 50
+
+    # Whether to perform 3D cutouts, creating overhangs and large caves.
+    cutouts: true
+    # Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no cutouts.
+    cutout-threshold: 0.75

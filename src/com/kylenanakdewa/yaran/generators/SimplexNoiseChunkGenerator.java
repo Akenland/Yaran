@@ -3,6 +3,7 @@ package com.kylenanakdewa.yaran.generators;
 import java.util.List;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,11 +21,13 @@ import org.bukkit.util.noise.SimplexNoiseGenerator;
 public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
     /**
-     * The frequencies to use. At least one is required. More will increase terrain variation.
+     * The frequencies to use. At least one is required. More will increase terrain
+     * variation.
      */
     protected static List<Double> frequencies;
     /**
-     * The size of each frequency. Must be the same number of values as the list of frequencies.
+     * The size of each frequency. Must be the same number of values as the list of
+     * frequencies.
      */
     protected static List<Double> sizes;
     /**
@@ -41,6 +44,15 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     protected static int originHeight;
 
+    /**
+     * Whether to perform 3D cutouts, creating overhangs and large caves.
+     */
+    protected static boolean cutouts;
+    /**
+     * Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no cutouts.
+     */
+    protected static double cutoutThreshold;
+
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-noise");
 
@@ -51,8 +63,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         amplitude = configSection.getInt("amplitude");
         originHeight = configSection.getInt("origin-height");
 
-        // enable3d = configSection.getBoolean("enable-3d");
-        // cutoutThreshold = configSection.getDouble("cutout-threshold");
+        cutouts = configSection.getBoolean("cutouts");
+        cutoutThreshold = configSection.getDouble("cutout-threshold");
     }
 
     @Override
@@ -90,16 +102,36 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                     chunk.setBlock(x, i, z, Material.STONE);
                 chunk.setBlock(x, 0, z, Material.BEDROCK);
 
-                /*if (enable3d) {
-                    for (int y = 0; y < 255; y++) {
-                        double noise3d = generator.noise(chunkX * 16 + x, y, chunkZ * 16 + z, frequency, amplitude,
-                                true);
+                // 3D cutouts
+                if (cutouts) {
+                    for (int y = 0; y < height; y++) {
+                        // Generate noise at various frequencies (octaves)
+                        double cutoutNoise = 0;
+                        double totalSize = 0;
+                        for (double frequency : frequencies) {
+                            double size = sizes.get(frequencies.indexOf(frequency));
+                            totalSize += size;
 
-                        if (noise3d > cutoutThreshold) {
+                            double unshiftedNoise = generator.noise(worldX * frequency, y * frequency,
+                                    worldZ * frequency);
+                            unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
+                            cutoutNoise += size * unshiftedNoise;
+                        }
+                        cutoutNoise = cutoutNoise / totalSize;
+
+                        // Debug - make sure resulting noise is in range 0-1
+                        if (cutoutNoise > 1 || cutoutNoise < 0) {
+                            Bukkit.broadcast("3D cutout noise was "+cutoutNoise+" at "+worldX+" "+y+" "+worldZ, "yaran.admin");
+                        }
+
+                        // Determine threshold for this location
+                        double heightPercentage = y/height; // 0 = bedrock, 1 = surface
+
+                        if (cutoutNoise * cutoutThreshold <= heightPercentage) {
                             chunk.setBlock(x, y, z, Material.AIR);
                         }
                     }
-                }*/
+                }
             }
         }
 
