@@ -3,7 +3,6 @@ package com.kylenanakdewa.yaran.generators;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -49,7 +48,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     protected static boolean cutouts;
     /**
-     * Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no cutouts.
+     * Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no
+     * cutouts.
      */
     protected static double cutoutThreshold;
 
@@ -104,7 +104,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
                 // 3D cutouts
                 if (cutouts) {
-                    for (int y = 0; y < height; y++) {
+                    for (int y = 0; y <= height; y++) {
                         // Generate noise at various frequencies (octaves)
                         double cutoutNoise = 0;
                         double totalSize = 0;
@@ -118,17 +118,15 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                             cutoutNoise += size * unshiftedNoise;
                         }
                         cutoutNoise = cutoutNoise / totalSize;
-
-                        // Debug - make sure resulting noise is in range 0-1
-                        if (cutoutNoise > 1 || cutoutNoise < 0) {
-                            Bukkit.broadcast("3D cutout noise was "+cutoutNoise+" at "+worldX+" "+y+" "+worldZ, "yaran.admin");
-                        }
+                        // Raise noise to a power (redistribution)
+                        cutoutNoise = Math.pow(cutoutNoise, exponent);
 
                         // Determine threshold for this location
-                        double heightPercentage = y/height; // 0 = bedrock, 1 = surface
+                        double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
 
                         if (cutoutNoise * cutoutThreshold <= heightPercentage) {
                             chunk.setBlock(x, y, z, Material.AIR);
+                            chunk.setBlock(x, height, z, Material.GLASS);
                         }
                     }
                 }
