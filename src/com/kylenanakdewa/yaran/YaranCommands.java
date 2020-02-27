@@ -1,7 +1,11 @@
 package com.kylenanakdewa.yaran;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.bukkit.World;
@@ -78,7 +82,7 @@ public final class YaranCommands implements TabExecutor {
                 if (entity instanceof Player) {
                     entity.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
                 }
-                if(entity.equals(sender)){
+                if (entity.equals(sender)) {
                     isSenderInWorld = true;
                 }
             }
@@ -90,8 +94,11 @@ public final class YaranCommands implements TabExecutor {
             }
 
             // Delete old world
-            if (!new File(plugin.getServer().getWorldContainer(), worldName).delete()) {
-                sender.sendMessage("Unable to delete world " + worldName);
+            try {
+                Files.walk(new File(plugin.getServer().getWorldContainer(), worldName).toPath())
+                        .sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            } catch (IOException e) {
+                sender.sendMessage("Unable to unload world " + worldName + ": " + e.getLocalizedMessage());
                 return false;
             }
 
@@ -102,7 +109,7 @@ public final class YaranCommands implements TabExecutor {
             World newWorld = plugin.getServer().createWorld(creator);
 
             // Automatically return sender to recreated world, if they were in it previously
-            if(isSenderInWorld){
+            if (isSenderInWorld) {
                 ((LivingEntity) sender).teleport(newWorld.getSpawnLocation());
             }
 

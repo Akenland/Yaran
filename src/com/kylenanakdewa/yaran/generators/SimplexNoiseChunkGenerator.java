@@ -125,8 +125,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
 
                         if (cutoutNoise * cutoutThreshold <= heightPercentage) {
-                            chunk.setBlock(x, y, z, Material.AIR);
-                            chunk.setBlock(x, height, z, Material.GLASS);
+                            chunk.setBlock(x, y + originHeight, z, Material.AIR);
+                            // chunk.setBlock(x, height, z, Material.GLASS);
                         }
                     }
                 }
