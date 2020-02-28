@@ -4,13 +4,16 @@ import java.io.File;
 import java.util.List;
 import java.util.Random;
 
+import com.kylenanakdewa.yaran.utils.imagemaps.DyeColorImageMap;
 import com.kylenanakdewa.yaran.utils.imagemaps.GreyscaleImageMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.material.Wool;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
 
@@ -72,6 +75,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      * The image map to use for altitude changes.
      */
     protected static GreyscaleImageMap imageMap;
+    /**
+     * The image map to use for wool colors.
+     */
+    protected static DyeColorImageMap woolMap;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-noise");
@@ -94,6 +101,13 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
             int imageXOffset = configSection.getInt("image-map.offset.x", 0);
             int imageZOffset = configSection.getInt("image-map.offset.z", 0);
             imageMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), imageXOffset, imageZOffset);
+        }
+        if (configSection.contains("wool-map.file", true)) {
+            Plugin plugin = Bukkit.getPluginManager().getPlugin("Yaran");
+            String fileName = configSection.getString("wool-map.file", "wool-map.png");
+            int imageXOffset = configSection.getInt("wool-map.offset.x", 0);
+            int imageZOffset = configSection.getInt("wool-map.offset.z", 0);
+            woolMap = new DyeColorImageMap(new File(plugin.getDataFolder(), fileName), imageXOffset, imageZOffset);
         }
     }
 
@@ -147,6 +161,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 } else if (height < 63) {
                     for (int i = height; i > 0; i--) {
                         Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
+                        if(i==63) blockToPlace = Material.SAND;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
                 } else {
@@ -183,6 +198,12 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                             chunk.setBlock(x, y + originHeight, z, Material.AIR);
                         }
                     }
+                }
+
+                // Wool color map
+                if(woolMap!=null) {
+                    DyeColor color = woolMap.getPixelDyeColorFromGame(worldX, worldZ);
+                    chunk.setBlock(x, 255, z, new Wool(color));
                 }
             }
         }
