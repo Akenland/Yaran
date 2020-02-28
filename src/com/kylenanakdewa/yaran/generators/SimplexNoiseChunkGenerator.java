@@ -52,6 +52,16 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      * cutouts.
      */
     protected static double cutoutThreshold;
+    /**
+     * The frequencies to use. At least one is required. More will increase terrain
+     * variation.
+     */
+    protected static List<Double> cutoutFrequencies;
+    /**
+     * The size of each frequency. Must be the same number of values as the list of
+     * frequencies.
+     */
+    protected static List<Double> cutoutSizes;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-noise");
@@ -65,6 +75,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
         cutouts = configSection.getBoolean("cutouts");
         cutoutThreshold = configSection.getDouble("cutout-threshold");
+        cutoutFrequencies = configSection.getDoubleList("cutout-frequencies");
+        cutoutSizes = configSection.getDoubleList("cutout-sizes");
     }
 
     @Override
@@ -108,8 +120,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         // Generate noise at various frequencies (octaves)
                         double cutoutNoise = 0;
                         double totalSize = 0;
-                        for (double frequency : frequencies) {
-                            double size = sizes.get(frequencies.indexOf(frequency));
+                        for (double frequency : cutoutFrequencies) {
+                            double size = cutoutSizes.get(cutoutFrequencies.indexOf(frequency));
                             totalSize += size;
 
                             double unshiftedNoise = generator.noise(worldX * frequency, y * frequency,
@@ -118,15 +130,13 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                             cutoutNoise += size * unshiftedNoise;
                         }
                         cutoutNoise = cutoutNoise / totalSize;
-                        // Raise noise to a power (redistribution)
-                        cutoutNoise = Math.pow(cutoutNoise, exponent);
 
                         // Determine threshold for this location
                         double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
+                        //heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of 0.25
 
                         if (cutoutNoise * cutoutThreshold <= heightPercentage) {
                             chunk.setBlock(x, y + originHeight, z, Material.AIR);
-                            // chunk.setBlock(x, height, z, Material.GLASS);
                         }
                     }
                 }

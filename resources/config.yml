@@ -60,4 +60,14 @@ generator-settings:
     # Whether to perform 3D cutouts, creating overhangs and large caves.
     cutouts: true
     # Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no cutouts.
-    cutout-threshold: 0.75
+    cutout-threshold: 2
+    # The frequencies to use. At least one is required. More will increase terrain variation.
+    cutout-frequencies:
+      - 1
+      - 2
+      - 4
+    # The size of each frequency. Must be the same number of values as the list of frequencies.
+    cutout-sizes:
+      - 1
+      - 0.5
+      - 0.25
