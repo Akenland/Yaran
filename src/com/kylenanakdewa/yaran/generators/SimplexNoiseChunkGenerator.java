@@ -108,10 +108,30 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 int height = (int) ((noise * amplitude) + originHeight);
 
                 // Place blocks
-                chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
-                chunk.setBlock(x, height - 1, z, Material.DIRT);
-                for (int i = height - 2; i > 0; i--)
-                    chunk.setBlock(x, i, z, Material.STONE);
+                if (height > 247) {
+                    for (int i = height; i > 0; i--) {
+                        Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
+                        chunk.setBlock(x, i, z, blockToPlace);
+                    }
+                }
+                if (height > 90) {
+                    for (int i = height; i > 0; i--) {
+                        Material blockToPlace = (i >= height - 3 && new Random().nextBoolean()) ? Material.GRAVEL
+                                : Material.STONE;
+                        chunk.setBlock(x, i, z, blockToPlace);
+                    }
+                }
+                if (height < 63) {
+                    for (int i = height; i > 0; i--) {
+                        Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
+                        chunk.setBlock(x, i, z, blockToPlace);
+                    }
+                } else {
+                    chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
+                    chunk.setBlock(x, height - 1, z, Material.DIRT);
+                    for (int i = height - 2; i > 0; i--)
+                        chunk.setBlock(x, i, z, Material.STONE);
+                }
                 chunk.setBlock(x, 0, z, Material.BEDROCK);
 
                 // 3D cutouts
@@ -133,7 +153,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
                         // Determine threshold for this location
                         double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
-                        //heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of 0.25
+                        // heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of
+                        // 0.25
 
                         if (cutoutNoise * cutoutThreshold <= heightPercentage) {
                             chunk.setBlock(x, y + originHeight, z, Material.AIR);
