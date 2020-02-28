@@ -45,7 +45,7 @@ public class ImageMap {
      * out-of-bounds, returns black.
      */
     public Color getPixelColor(int x, int y) {
-        if (x > image.getWidth() || y > image.getHeight()) {
+        if (x > image.getWidth() || y > image.getHeight() || x < 0 || y < 0) {
             return Color.BLACK;
         }
 
