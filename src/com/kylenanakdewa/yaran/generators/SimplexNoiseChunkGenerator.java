@@ -114,19 +114,20 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
                 }
-                if (height > 90) {
+                else if (height > 90) {
                     for (int i = height; i > 0; i--) {
                         Material blockToPlace = (i >= height - 3 && new Random().nextBoolean()) ? Material.GRAVEL
                                 : Material.STONE;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
                 }
-                if (height < 63) {
+                else if (height < 63) {
                     for (int i = height; i > 0; i--) {
                         Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
-                } else {
+                }
+                else {
                     chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
                     chunk.setBlock(x, height - 1, z, Material.DIRT);
                     for (int i = height - 2; i > 0; i--)
