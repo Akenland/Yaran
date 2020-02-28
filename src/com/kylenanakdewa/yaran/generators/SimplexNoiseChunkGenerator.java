@@ -1,12 +1,17 @@
 package com.kylenanakdewa.yaran.generators;
 
+import java.io.File;
 import java.util.List;
 import java.util.Random;
 
+import com.kylenanakdewa.yaran.utils.imagemaps.GreyscaleImageMap;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
 
 /**
@@ -63,6 +68,11 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     protected static List<Double> cutoutSizes;
 
+    /**
+     * The image map to use for altitude changes.
+     */
+    protected static GreyscaleImageMap imageMap;
+
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("simplex-noise");
 
@@ -77,6 +87,14 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         cutoutThreshold = configSection.getDouble("cutout-threshold");
         cutoutFrequencies = configSection.getDoubleList("cutout-frequencies");
         cutoutSizes = configSection.getDoubleList("cutout-sizes");
+
+        if (configSection.contains("image-map.file", true)) {
+            Plugin plugin = Bukkit.getPluginManager().getPlugin("Yaran");
+            String fileName = configSection.getString("image-map.file", "map.png");
+            int imageXOffset = configSection.getInt("image-map.offset.x", 0);
+            int imageZOffset = configSection.getInt("image-map.offset.z", 0);
+            imageMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), imageXOffset, imageZOffset);
+        }
     }
 
     @Override
@@ -91,6 +109,13 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 int worldX = chunkX * 16 + x;
                 int worldZ = chunkZ * 16 + z;
 
+                // Get image map height multiplier
+                double heightModifier = 1;
+                if (imageMap != null) {
+                    heightModifier = imageMap.getPixelGreyscaleFromGame(worldX, worldZ);
+                    heightModifier = 0.75 * heightModifier + 0.75;
+                }
+
                 // Generate noise at various frequencies (octaves)
                 double noise = 0;
                 for (double frequency : frequencies) {
@@ -98,7 +123,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
                     double unshiftedNoise = generator.noise(worldX * frequency, worldZ * frequency);
                     unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
-                    noise += size * unshiftedNoise;
+                    noise += heightModifier * size * unshiftedNoise;
                 }
 
                 // Raise noise to a power (redistribution)
@@ -113,21 +138,18 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
-                }
-                else if (height > 90) {
+                } else if (height > 90) {
                     for (int i = height; i > 0; i--) {
                         Material blockToPlace = (i >= height - 3 && new Random().nextBoolean()) ? Material.GRAVEL
                                 : Material.STONE;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
-                }
-                else if (height < 63) {
+                } else if (height < 63) {
                     for (int i = height; i > 0; i--) {
                         Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
                         chunk.setBlock(x, i, z, blockToPlace);
                     }
-                }
-                else {
+                } else {
                     chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
                     chunk.setBlock(x, height - 1, z, Material.DIRT);
                     for (int i = height - 2; i > 0; i--)
