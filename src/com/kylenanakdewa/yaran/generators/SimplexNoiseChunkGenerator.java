@@ -221,7 +221,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         } else if (height < 63) {
             for (int i = height; i > 0; i--) {
                 Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
-                if (i == 63)
+                if (i == 62)
                     blockToPlace = Material.SAND;
                 chunk.setBlock(x, i, z, blockToPlace);
             }
