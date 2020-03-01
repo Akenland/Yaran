@@ -163,9 +163,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         } else
             return 1;
     }
+
     /**
-     * Gets the minimum height modifier for the specified world coordinates, using the
-     * amplitude image map.
+     * Gets the minimum height modifier for the specified world coordinates, using
+     * the amplitude image map.
      * <p>
      * If no map is available, will return 1.
      */
@@ -294,6 +295,26 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         }
 
         return chunk;
+    }
+
+    @Override
+    public boolean shouldGenerateCaves() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldGenerateDecorations() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldGenerateMobs() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldGenerateStructures() {
+        return true;
     }
 
 }

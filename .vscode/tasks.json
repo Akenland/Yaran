@@ -6,7 +6,7 @@
         {
             "label": "Install and deploy to test server",
             "type": "shell",
-            "command": "mvn -B install \\\"&\\\" copy target\\Yaran.jar \\\\MCSERVER\\Testing_Spigot\\plugins",
+            "command": "mvn -B install \\\"&\\\" copy target\\Yaran.jar \\\\MCSERVER\\Akania_Test\\plugins",
             "group": "build"
         }
     ]
