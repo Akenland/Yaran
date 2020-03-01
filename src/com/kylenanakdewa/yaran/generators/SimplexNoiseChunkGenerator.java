@@ -114,8 +114,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 String fileName = configSection.getString("image-maps.minimum-height", "map_height.png");
                 minHeightMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
             }
-            if (configSection.contains("image-maps.wool-map", true)) {
-                String fileName = configSection.getString("wool-map.file", "map_wool.png");
+            if (configSection.contains("image-maps.wool", true)) {
+                String fileName = configSection.getString("image-maps.wool", "map_wool.png");
                 woolMap = new DyeColorImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
             }
         }
@@ -173,7 +173,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
     private double getTerrainHeightModifier(int worldX, int worldZ) {
         if (minHeightMap != null) {
             double heightModifier = minHeightMap.getPixelGreyscaleFromGame(worldX, worldZ);
-            return 0.2 * heightModifier + 0.9;
+            return 0.4 * heightModifier + 0.8;
         } else
             return 1;
     }
