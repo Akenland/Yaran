@@ -43,20 +43,21 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
     protected static double exponent;
 
     /**
-     * How far the terrain can be above/below the origin height.
+     * How far the terrain can be above the minimum height * total sizes * 4.
      */
-    protected static int amplitude;
+    protected static int finalAmplitude;
     /**
-     * The origin height. Terrain will be centered on this height.
+     * The minimum terrain height. All terrain will be generated at or above this
+     * level.
      */
-    protected static int originHeight;
+    protected static int minimumHeight;
 
     /**
      * Whether to perform 3D cutouts, creating overhangs and large caves.
      */
     protected static boolean cutouts;
     /**
-     * Percentage of valid cutouts to perform. 1 = 100% of possible cutouts, 0 = no
+     * Threshold for cutting out terrain to create overhangs. Higher numbers = less
      * cutouts.
      */
     protected static double cutoutThreshold;
@@ -74,7 +75,11 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
     /**
      * The image map to use for altitude changes.
      */
-    protected static GreyscaleImageMap imageMap;
+    protected static GreyscaleImageMap altitudeMap;
+    /**
+     * The image map to use for minimum height changes.
+     */
+    protected static GreyscaleImageMap minHeightMap;
     /**
      * The image map to use for wool colors.
      */
@@ -87,27 +92,32 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         sizes = configSection.getDoubleList("sizes");
         exponent = configSection.getDouble("exponent");
 
-        amplitude = configSection.getInt("amplitude");
-        originHeight = configSection.getInt("origin-height");
+        finalAmplitude = configSection.getInt("amplitude");
+        minimumHeight = configSection.getInt("minimum-height");
 
         cutouts = configSection.getBoolean("cutouts");
         cutoutThreshold = configSection.getDouble("cutout-threshold");
         cutoutFrequencies = configSection.getDoubleList("cutout-frequencies");
         cutoutSizes = configSection.getDoubleList("cutout-sizes");
 
-        if (configSection.contains("image-map.file", true)) {
+        if (configSection.contains("image-maps", true)) {
             Plugin plugin = Bukkit.getPluginManager().getPlugin("Yaran");
-            String fileName = configSection.getString("image-map.file", "map.png");
-            int imageXOffset = configSection.getInt("image-map.offset.x", 0);
-            int imageZOffset = configSection.getInt("image-map.offset.z", 0);
-            imageMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), imageXOffset, imageZOffset);
-        }
-        if (configSection.contains("wool-map.file", true)) {
-            Plugin plugin = Bukkit.getPluginManager().getPlugin("Yaran");
-            String fileName = configSection.getString("wool-map.file", "wool-map.png");
-            int imageXOffset = configSection.getInt("wool-map.offset.x", 0);
-            int imageZOffset = configSection.getInt("wool-map.offset.z", 0);
-            woolMap = new DyeColorImageMap(new File(plugin.getDataFolder(), fileName), imageXOffset, imageZOffset);
+
+            int xOffset = configSection.getInt("image-maps.offset.x", 0);
+            int zOffset = configSection.getInt("image-maps.offset.z", 0);
+
+            if (configSection.contains("image-maps.amplitude", true)) {
+                String fileName = configSection.getString("image-maps.amplitude", "map_amplitude.png");
+                altitudeMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
+            }
+            if (configSection.contains("image-maps.minimum-height", true)) {
+                String fileName = configSection.getString("image-maps.minimum-height", "map_height.png");
+                minHeightMap = new GreyscaleImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
+            }
+            if (configSection.contains("image-maps.wool-map", true)) {
+                String fileName = configSection.getString("wool-map.file", "map_wool.png");
+                woolMap = new DyeColorImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
+            }
         }
     }
 
@@ -123,89 +133,149 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 int worldX = chunkX * 16 + x;
                 int worldZ = chunkZ * 16 + z;
 
-                // Get image map height multiplier
-                double heightModifier = 1;
-                if (imageMap != null) {
-                    heightModifier = imageMap.getPixelGreyscaleFromGame(worldX, worldZ);
-                    heightModifier = 0.75 * heightModifier + 0.75;
-                }
-
-                // Generate noise at various frequencies (octaves)
-                double noise = 0;
-                for (double frequency : frequencies) {
-                    double size = sizes.get(frequencies.indexOf(frequency));
-
-                    double unshiftedNoise = generator.noise(worldX * frequency, worldZ * frequency);
-                    unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
-                    noise += heightModifier * size * unshiftedNoise;
-                }
-
-                // Raise noise to a power (redistribution)
-                noise = Math.pow(noise, exponent);
-
                 // Use noise to calculate terrain height
-                int height = (int) ((noise * amplitude) + originHeight);
+                int height = getTerrainHeight(worldX, worldZ, generator);
 
                 // Place blocks
-                if (height > 247) {
-                    for (int i = height; i > 0; i--) {
-                        Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
-                        chunk.setBlock(x, i, z, blockToPlace);
-                    }
-                } else if (height > 90) {
-                    for (int i = height; i > 0; i--) {
-                        Material blockToPlace = (i >= height - 3 && new Random().nextBoolean()) ? Material.GRAVEL
-                                : Material.STONE;
-                        chunk.setBlock(x, i, z, blockToPlace);
-                    }
-                } else if (height < 63) {
-                    for (int i = height; i > 0; i--) {
-                        Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
-                        if(i==63) blockToPlace = Material.SAND;
-                        chunk.setBlock(x, i, z, blockToPlace);
-                    }
-                } else {
-                    chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
-                    chunk.setBlock(x, height - 1, z, Material.DIRT);
-                    for (int i = height - 2; i > 0; i--)
-                        chunk.setBlock(x, i, z, Material.STONE);
-                }
-                chunk.setBlock(x, 0, z, Material.BEDROCK);
+                chunk = generateChunkBlocks(chunk, x, height, z);
 
                 // 3D cutouts
-                if (cutouts) {
-                    for (int y = 0; y <= height; y++) {
-                        // Generate noise at various frequencies (octaves)
-                        double cutoutNoise = 0;
-                        double totalSize = 0;
-                        for (double frequency : cutoutFrequencies) {
-                            double size = cutoutSizes.get(cutoutFrequencies.indexOf(frequency));
-                            totalSize += size;
-
-                            double unshiftedNoise = generator.noise(worldX * frequency, y * frequency,
-                                    worldZ * frequency);
-                            unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
-                            cutoutNoise += size * unshiftedNoise;
-                        }
-                        cutoutNoise = cutoutNoise / totalSize;
-
-                        // Determine threshold for this location
-                        double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
-                        // heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of
-                        // 0.25
-
-                        if (cutoutNoise * cutoutThreshold <= heightPercentage) {
-                            chunk.setBlock(x, y + originHeight, z, Material.AIR);
-                        }
-                    }
-                }
+                chunk = generate3dCutouts(chunk, generator, x, z, worldX, height, worldZ);
 
                 // Wool color map
-                if(woolMap!=null) {
-                    DyeColor color = woolMap.getPixelDyeColorFromGame(worldX, worldZ);
-                    chunk.setBlock(x, 255, z, new Wool(color));
+                chunk = generateWoolOverlay(chunk, x, z, worldX, worldZ);
+            }
+        }
+
+        return chunk;
+    }
+
+    /**
+     * Gets the amplitude modifier for the specified world coordinates, using the
+     * amplitude image map.
+     * <p>
+     * If no map is available, will return 1.
+     */
+    private double getTerrainAmplitudeModifier(int worldX, int worldZ) {
+        if (altitudeMap != null) {
+            double heightModifier = altitudeMap.getPixelGreyscaleFromGame(worldX, worldZ);
+            return 0.75 * heightModifier + 0.75;
+        } else
+            return 1;
+    }
+
+    /**
+     * Gets the terrain height for the specified world coordinates, using 2D simplex
+     * noise.
+     */
+    private int getTerrainHeight(int worldX, int worldZ, SimplexNoiseGenerator generator) {
+        // Get image map height multiplier
+        double heightAmplitude = getTerrainAmplitudeModifier(worldX, worldZ);
+
+        // Generate noise at various frequencies (octaves)
+        double noise = 0;
+        for (double frequency : frequencies) {
+            double size = sizes.get(frequencies.indexOf(frequency));
+
+            // Generate noise in -1 to 1 range
+            double singleNoise = generator.noise(worldX * frequency, worldZ * frequency);
+
+            // Convert from -1 to 1 range, into 0 to 1 range
+            singleNoise = (singleNoise + 1) / 2;
+
+            // Adjust noise using amplitude modifier
+            singleNoise = heightAmplitude * size * singleNoise;
+
+            // Add to total noise
+            noise += singleNoise;
+        }
+
+        // Raise noise to a power (redistribution)
+        noise = Math.pow(noise, exponent);
+
+        // Use noise to calculate height
+        int height = (int) ((noise * finalAmplitude) + minimumHeight);
+
+        return height;
+    }
+
+    /**
+     * Generates the blocks in a chunk, using chunk X and Z values, and the terrain
+     * height.
+     * <p>
+     * This only generates using the height provided - overhangs and other cutouts
+     * are ignored.
+     */
+    private ChunkData generateChunkBlocks(ChunkData chunk, int x, int height, int z) {
+        if (height > 247) {
+            for (int i = height; i > 0; i--) {
+                Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
+                chunk.setBlock(x, i, z, blockToPlace);
+            }
+        } else if (height > 90) {
+            for (int i = height; i > 0; i--) {
+                Material blockToPlace = (i >= height - 3 && new Random().nextBoolean()) ? Material.GRAVEL
+                        : Material.STONE;
+                chunk.setBlock(x, i, z, blockToPlace);
+            }
+        } else if (height < 63) {
+            for (int i = height; i > 0; i--) {
+                Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
+                if (i == 63)
+                    blockToPlace = Material.SAND;
+                chunk.setBlock(x, i, z, blockToPlace);
+            }
+        } else {
+            chunk.setBlock(x, height, z, Material.GRASS_BLOCK);
+            chunk.setBlock(x, height - 1, z, Material.DIRT);
+            for (int i = height - 2; i > 0; i--)
+                chunk.setBlock(x, i, z, Material.STONE);
+        }
+        chunk.setBlock(x, 0, z, Material.BEDROCK);
+
+        return chunk;
+    }
+
+    /**
+     * Generates 3D cutouts in a chunk, using 3D simplex noise. This will cut
+     * existing blocks out of the chunk, creating overhangs and caves.
+     */
+    private ChunkData generate3dCutouts(ChunkData chunk, SimplexNoiseGenerator generator, int x, int z, int worldX,
+            int height, int worldZ) {
+        if (cutouts) {
+            for (int y = 0; y <= height; y++) {
+                // Generate noise at various frequencies (octaves)
+                double cutoutNoise = 0;
+                double totalSize = 0;
+                for (double frequency : cutoutFrequencies) {
+                    double size = cutoutSizes.get(cutoutFrequencies.indexOf(frequency));
+                    totalSize += size;
+
+                    double unshiftedNoise = generator.noise(worldX * frequency, y * frequency, worldZ * frequency);
+                    unshiftedNoise = (unshiftedNoise + 1) / 2; // Convert from -1 to 1 range, into 0 to 1 range
+                    cutoutNoise += size * unshiftedNoise;
+                }
+                cutoutNoise = cutoutNoise / totalSize;
+
+                // Determine threshold for this location
+                double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
+                // heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of
+                // 0.25
+
+                if (cutoutNoise * cutoutThreshold <= heightPercentage) {
+                    chunk.setBlock(x, y + minimumHeight, z, Material.AIR);
                 }
             }
+        }
+
+        return chunk;
+    }
+
+    private ChunkData generateWoolOverlay(ChunkData chunk, int x, int z, int worldX, int worldZ) {
+        if (woolMap != null) {
+            DyeColor color = woolMap.getPixelDyeColorFromGame(worldX, worldZ);
+            if (color != null)
+                chunk.setBlock(x, 255, z, new Wool(color));
         }
 
         return chunk;
