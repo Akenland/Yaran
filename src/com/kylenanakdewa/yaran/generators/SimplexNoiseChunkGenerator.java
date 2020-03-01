@@ -163,6 +163,19 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         } else
             return 1;
     }
+    /**
+     * Gets the minimum height modifier for the specified world coordinates, using the
+     * amplitude image map.
+     * <p>
+     * If no map is available, will return 1.
+     */
+    private double getTerrainHeightModifier(int worldX, int worldZ) {
+        if (minHeightMap != null) {
+            double heightModifier = minHeightMap.getPixelGreyscaleFromGame(worldX, worldZ);
+            return 0.2 * heightModifier + 0.9;
+        } else
+            return 1;
+    }
 
     /**
      * Gets the terrain height for the specified world coordinates, using 2D simplex
@@ -170,7 +183,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     private int getTerrainHeight(int worldX, int worldZ, SimplexNoiseGenerator generator) {
         // Get image map height multiplier
-        double heightAmplitude = getTerrainAmplitudeModifier(worldX, worldZ);
+        double amplitudeModifier = getTerrainAmplitudeModifier(worldX, worldZ);
 
         // Generate noise at various frequencies (octaves)
         double noise = 0;
@@ -184,7 +197,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
             singleNoise = (singleNoise + 1) / 2;
 
             // Adjust noise using amplitude modifier
-            singleNoise = heightAmplitude * size * singleNoise;
+            singleNoise = amplitudeModifier * size * singleNoise;
 
             // Add to total noise
             noise += singleNoise;
@@ -194,7 +207,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         noise = Math.pow(noise, exponent);
 
         // Use noise to calculate height
-        int height = (int) ((noise * finalAmplitude) + minimumHeight);
+        int modifiedMinimumHeight = (int) (minimumHeight * getTerrainHeightModifier(worldX, worldZ));
+        int height = (int) ((noise * finalAmplitude) + modifiedMinimumHeight);
 
         return height;
     }
@@ -248,7 +262,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 double cutoutNoise = 0;
                 double totalSize = 0;
                 for (double frequency : cutoutFrequencies) {
-                    double size = cutoutSizes.get(cutoutFrequencies.indexOf(frequency));
+                    double size = cutoutSizes.get(cutoutFrequencies.indexOf(frequency))
+                            * getTerrainAmplitudeModifier(worldX, worldZ);
                     totalSize += size;
 
                     double unshiftedNoise = generator.noise(worldX * frequency, y * frequency, worldZ * frequency);
@@ -259,11 +274,11 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
                 // Determine threshold for this location
                 double heightPercentage = ((double) y / (double) height); // 0 = bedrock, 1 = surface
-                // heightPercentage = Math.max(heightPercentage, 0.25); // Minimum threshold of
-                // 0.25
+                // heightPercentage = Math.max(heightPercentage, 0.25); // Min threshold of 0.25
 
                 if (cutoutNoise * cutoutThreshold <= heightPercentage) {
-                    chunk.setBlock(x, y + minimumHeight, z, Material.AIR);
+                    int modifiedMinimumHeight = (int) (minimumHeight * getTerrainHeightModifier(worldX, worldZ));
+                    chunk.setBlock(x, y + (modifiedMinimumHeight), z, Material.AIR);
                 }
             }
         }
