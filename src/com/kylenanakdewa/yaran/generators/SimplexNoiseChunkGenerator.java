@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Random;
 
+import com.kylenanakdewa.yaran.utils.imagemaps.BiomeImageMap;
 import com.kylenanakdewa.yaran.utils.imagemaps.DyeColorImageMap;
 import com.kylenanakdewa.yaran.utils.imagemaps.GreyscaleImageMap;
 
@@ -11,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.material.Wool;
@@ -81,6 +83,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
      */
     protected static GreyscaleImageMap minHeightMap;
     /**
+     * The image map to use for biomes.
+     */
+    protected static BiomeImageMap biomeMap;
+    /**
      * The image map to use for wool colors.
      */
     protected static DyeColorImageMap woolMap;
@@ -118,6 +124,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                 String fileName = configSection.getString("image-maps.wool", "map_wool.png");
                 woolMap = new DyeColorImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
             }
+            if (configSection.contains("image-maps.biomes", true)) {
+                String fileName = configSection.getString("image-maps.biomes", "map_biomes.png");
+                biomeMap = new BiomeImageMap(new File(plugin.getDataFolder(), fileName), xOffset, zOffset);
+            }
         }
     }
 
@@ -141,6 +151,12 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
 
                 // 3D cutouts
                 chunk = generate3dCutouts(chunk, generator, x, z, worldX, height, worldZ);
+
+                // Set biomes
+                biome = setBiomes(biome, x, z, worldX, worldZ);
+
+                // Place biome-specific blocks
+                chunk = setBiomeBlocks(chunk, biome, x, height, z);
 
                 // Wool color map
                 chunk = generateWoolOverlay(chunk, x, z, worldX, worldZ);
@@ -287,12 +303,98 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         return chunk;
     }
 
+    /**
+     * Generates wool blocks, using a provided image map. The wool will generate at
+     * the world height limit.
+     */
     private ChunkData generateWoolOverlay(ChunkData chunk, int x, int z, int worldX, int worldZ) {
         if (woolMap != null) {
             DyeColor color = woolMap.getPixelDyeColorFromGame(worldX, worldZ);
             if (color != null)
                 chunk.setBlock(x, 255, z, new Wool(color));
         }
+
+        return chunk;
+    }
+
+    /**
+     * Sets biomes, using a biome map image.
+     */
+    private BiomeGrid setBiomes(BiomeGrid biomes, int x, int z, int worldX, int worldZ) {
+        if (biomeMap != null) {
+            Biome biome = biomeMap.getPixelBiomeFromGame(worldX, worldZ);
+            if (biome != null)
+                biomes.setBiome(x, z, biome);
+        }
+
+        return biomes;
+    }
+
+    /**
+     * Sets the blocks, according to biomes.
+     */
+    private ChunkData setBiomeBlocks(ChunkData chunk, BiomeGrid biomes, int x, int height, int z) {
+        // Change top 2-5 blocks
+        int depth = new Random().nextInt(4) + 2;
+        for (int i = height; i > height - depth; i--) {
+
+            // Only place blocks if a block already exists
+            if (!chunk.getBlockData(x, i, z).getMaterial().isAir()) {
+
+                switch (biomes.getBiome(x, z)) {
+
+                    case BEACH:
+                    case SNOWY_BEACH:
+                    case OCEAN:
+                        // Fill water
+                        if (height < 62) {
+                            for (int iWater = height + 1; iWater <= 62; iWater++) {
+                                chunk.setBlock(x, iWater, z, Material.WATER);
+                            }
+                        }
+                        // Sand
+                        chunk.setBlock(x, i, z, Material.SAND);
+                        break;
+
+                    case MOUNTAINS:
+                    case MODIFIED_GRAVELLY_MOUNTAINS:
+                    case GRAVELLY_MOUNTAINS:
+                    case MOUNTAIN_EDGE:
+                    case SNOWY_MOUNTAINS:
+                    case SNOWY_TAIGA_MOUNTAINS:
+                    case TAIGA_MOUNTAINS:
+                    case WOODED_MOUNTAINS:
+                    case STONE_SHORE:
+                        // If above 245, place snow block
+                        if (i > 245) {
+                            chunk.setBlock(x, i, z, Material.SNOW_BLOCK);
+                        }
+                        // If above 200, or random chance if above 80, place stone or gravel
+                        else if (i > 200 || (i > 80 && new Random().nextBoolean())) {
+                            Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
+                        // Otherwise place grass/dirt
+                        else {
+                            Material blockToPlace = i == height ? Material.GRASS : Material.DIRT;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
+                        break;
+
+                    default:
+                        // For all other biomes, grass and dirt
+                        Material blockToPlace = i == height ? Material.GRASS : Material.DIRT;
+                        chunk.setBlock(x, i, z, blockToPlace);
+                        break;
+
+                }
+
+            }
+
+        }
+
+        // Bedrock floor
+        chunk.setBlock(x, 0, z, Material.BEDROCK);
 
         return chunk;
     }

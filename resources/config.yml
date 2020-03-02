@@ -71,3 +71,56 @@ generator-settings:
       - 1
       - 0.5
       - 0.25
+
+biome-color-mappings:
+  0x00000070: ocean
+  0x008DB360: plains
+  0x00FA9418: desert
+  0x00606060: mountains
+  0x00056621: forest
+  0x000B6659: taiga
+  0x0007F9B2: swamp
+  0x000000FF: river
+  0x00FF0000: nether
+  0x008080FF: the_end
+  0x007070D6: frozen_ocean
+  0x00A0A0FF: frozen_river
+  0x00FFFFFF: snowy_tundra
+  0x00A0A0A0: snowy_mountains
+  0x00FF00FF: mushroom_fields
+  0x00A000FF: mushroom_field_shore
+  0x00FADE55: beach
+  0x00D25F12: desert_hills
+  0x0022551C: wooded_hills
+  0x00163933: taiga_hills
+  0x0072789A: mountain_edge
+  0x00537B09: jungle
+  0x002C4205: jungle_hills
+  0x00628B17: jungle_edge
+  0x00000030: deep_ocean
+  0x00A2A284: stone_shore
+  0x00FAF0C0: snowy_beach
+  0x00307444: birch_forest
+  0x001F5F32: birch_forest_hills
+  0x0040511A: dark_forest
+  0x0031554A: snowy_taiga
+  0x00243F36: snowy_taiga_hills
+  0x00596651: gaint_spruce_taiga
+  0x00454F3E: giant_spruce_taiga_hills
+  0x00507050: wooded_mountains
+  0x00BDB25F: savanna
+  0x00A79D64: savanna_plateau
+  0x00D94515: badlands
+  0x00B09765: wooded_badlands_plateau
+  0x00CA8C65: badlands_plateau
+  0x000000AC: warm_ocean
+  0x00000090: lukewarm_ocean
+  0x00202070: cold_ocean
+  0x00000050: deep_warm_ocean
+  0x00000040: deep_lukewarm_ocean
+  0x00202038: deep_cold_ocean
+  0x00404090: deep_frozen__ocean
+  0x00B5DB88: sunflower_plains
+  0x00FFBC40: desert_lakes
+  0x00888888: gravelly_mountains
+  0x002D8E49: flower_forest
