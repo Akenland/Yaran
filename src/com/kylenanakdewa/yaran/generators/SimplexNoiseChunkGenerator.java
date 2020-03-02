@@ -380,8 +380,10 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                             }
                         }
                         // Place stone or gravel
-                        Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
-                        chunk.setBlock(x, i, z, blockToPlace);
+                        if (i > 0) {
+                            Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
                         break;
 
                     case MOUNTAINS:
