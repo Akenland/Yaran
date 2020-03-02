@@ -105,7 +105,7 @@ biome-color-mappings:
   0x0040511A: dark_forest
   0x0031554A: snowy_taiga
   0x00243F36: snowy_taiga_hills
-  0x00596651: gaint_spruce_taiga
+  0x00596651: giant_spruce_taiga
   0x00454F3E: giant_spruce_taiga_hills
   0x00507050: wooded_mountains
   0x00BDB25F: savanna
@@ -119,7 +119,7 @@ biome-color-mappings:
   0x00000050: deep_warm_ocean
   0x00000040: deep_lukewarm_ocean
   0x00202038: deep_cold_ocean
-  0x00404090: deep_frozen__ocean
+  0x00404090: deep_frozen_ocean
   0x00B5DB88: sunflower_plains
   0x00FFBC40: desert_lakes
   0x00888888: gravelly_mountains

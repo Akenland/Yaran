@@ -353,8 +353,21 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                                 chunk.setBlock(x, iWater, z, Material.WATER);
                             }
                         }
-                        // Sand
-                        chunk.setBlock(x, i, z, Material.SAND);
+
+                        // If above 80, place stone or gravel
+                        if (i > 80) {
+                            Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
+                        // If between 80 and 64, place grass/dirt
+                        else if (i >= 64) {
+                            Material blockToPlace = i == height ? Material.GRASS_BLOCK : Material.DIRT;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
+                        // Otherwise, place sand
+                        else {
+                            chunk.setBlock(x, i, z, Material.SAND);
+                        }
                         break;
 
                     case MOUNTAINS:
@@ -383,9 +396,15 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         break;
 
                     default:
-                        // For all other biomes, grass and dirt
-                        Material blockToPlace = i == height ? Material.GRASS_BLOCK : Material.DIRT;
-                        chunk.setBlock(x, i, z, blockToPlace);
+                        // If above 200, or random chance if above 85, place stone or gravel
+                        if (i > 200 || (i > 85 && new Random().nextBoolean())) {
+                            Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        } else {
+                            // For all other biomes, grass and dirt
+                            Material blockToPlace = i == height ? Material.GRASS_BLOCK : Material.DIRT;
+                            chunk.setBlock(x, i, z, blockToPlace);
+                        }
                         break;
 
                 }
