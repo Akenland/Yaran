@@ -324,7 +324,8 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
         if (biomeMap != null) {
             Biome biome = biomeMap.getPixelBiomeFromGame(worldX, worldZ);
             if (biome != null)
-                biomes.setBiome(x, z, biome);
+                for (int y = 0; y < 256; y++)
+                    biomes.setBiome(x, y, z, biome);
         }
 
         return biomes;
@@ -341,7 +342,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
             // Only place blocks if a block already exists
             if (!chunk.getBlockData(x, i, z).getMaterial().isAir()) {
 
-                switch (biomes.getBiome(x, z)) {
+                switch (biomes.getBiome(x, i, z)) {
 
                     case BEACH:
                     case SNOWY_BEACH:
@@ -376,14 +377,14 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         }
                         // Otherwise place grass/dirt
                         else {
-                            Material blockToPlace = i == height ? Material.GRASS : Material.DIRT;
+                            Material blockToPlace = i == height ? Material.GRASS_BLOCK : Material.DIRT;
                             chunk.setBlock(x, i, z, blockToPlace);
                         }
                         break;
 
                     default:
                         // For all other biomes, grass and dirt
-                        Material blockToPlace = i == height ? Material.GRASS : Material.DIRT;
+                        Material blockToPlace = i == height ? Material.GRASS_BLOCK : Material.DIRT;
                         chunk.setBlock(x, i, z, blockToPlace);
                         break;
 
