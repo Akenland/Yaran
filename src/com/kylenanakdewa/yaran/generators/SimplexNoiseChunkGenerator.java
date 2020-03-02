@@ -240,7 +240,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
     private ChunkData generateChunkBlocks(ChunkData chunk, int x, int height, int z) {
         if (height > 247) {
             for (int i = height; i > 0; i--) {
-                //Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
+                // Material blockToPlace = (i > 247) ? Material.GOLD_BLOCK : Material.STONE;
                 Material blockToPlace = Material.STONE;
                 chunk.setBlock(x, i, z, blockToPlace);
             }
@@ -252,7 +252,7 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
             }
         } else if (height < 63) {
             for (int i = height; i > 0; i--) {
-                //Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
+                // Material blockToPlace = (i > 43) ? Material.LAPIS_BLOCK : Material.STONE;
                 Material blockToPlace = Material.STONE;
                 if (i == 62)
                     blockToPlace = Material.SAND;
@@ -372,6 +372,18 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                         }
                         break;
 
+                    case STONE_SHORE:
+                        // Fill water
+                        if (height < 62) {
+                            for (int iWater = height + 1; iWater <= 62; iWater++) {
+                                chunk.setBlock(x, iWater, z, Material.WATER);
+                            }
+                        }
+                        // Place stone or gravel
+                        Material blockToPlace = new Random().nextBoolean() ? Material.GRAVEL : Material.STONE;
+                        chunk.setBlock(x, i, z, blockToPlace);
+                        break;
+
                     case MOUNTAINS:
                     case MODIFIED_GRAVELLY_MOUNTAINS:
                     case GRAVELLY_MOUNTAINS:
@@ -380,7 +392,6 @@ public class SimplexNoiseChunkGenerator extends ChunkGenerator {
                     case SNOWY_TAIGA_MOUNTAINS:
                     case TAIGA_MOUNTAINS:
                     case WOODED_MOUNTAINS:
-                    case STONE_SHORE:
                         // If above 245, place snow block
                         if (i > 245) {
                             chunk.setBlock(x, i, z, Material.SNOW_BLOCK);
