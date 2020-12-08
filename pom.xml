@@ -5,7 +5,7 @@
 
   <groupId>com.kylenanakdewa</groupId>
   <artifactId>Yaran</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
 
   <build>
     <sourceDirectory>${basedir}/src</sourceDirectory>
@@ -26,6 +26,10 @@
       <id>spigot-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
+    <repository>
+      <id>enginehub-repo</id>
+      <url>https://maven.enginehub.org/repo/</url>
+    </repository>
   </repositories>
 
   <dependencies>
@@ -33,7 +37,14 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.15.2-R0.1-SNAPSHOT</version>
+      <version>1.16.4-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--WorldEdit-->
+    <dependency>
+      <groupId>com.sk89q.worldedit</groupId>
+      <artifactId>worldedit-bukkit</artifactId>
+      <version>7.2.0</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

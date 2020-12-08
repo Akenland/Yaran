@@ -13,3 +13,7 @@ commands:
     description: View plugin information, and reload the plugin.
     permission: yaran.admin
     usage: /yaran <version/reload>
+  2dnoise:
+    description: Generate 2D Simplex Noise terrain in the selected WorldEdit region.
+    permission: yaran.admin
+    usage: /2dnoise <block pattern> <amplitude> [frequency:size],[frequency:size]... [exponent]

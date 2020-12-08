@@ -4,6 +4,7 @@ import com.kylenanakdewa.yaran.generators.MinimalChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexNoiseChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctave3dChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctaveChunkGenerator;
+import com.kylenanakdewa.yaran.worldedit.SimplexNoiseRegionCommand;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.generator.ChunkGenerator;
@@ -20,6 +21,7 @@ public final class YaranPlugin extends JavaPlugin {
 	public void onEnable() {
 		// Main command
 		getCommand("yaran").setExecutor(new YaranCommands(this));
+		getCommand("2dnoise").setExecutor(new SimplexNoiseRegionCommand());
 
 		// Run all reload tasks
 		reload();
