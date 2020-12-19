@@ -126,7 +126,7 @@ public final class YaranCommands implements TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         // Create world command
         if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
-            return Arrays.asList("simplex-noise", "simplex-octave", "simplex-octave-3d", "minimal");
+            return Arrays.asList("yaran-new", "simplex-noise", "simplex-octave", "simplex-octave-3d", "minimal");
         }
 
         // Main command - return each sub-command

@@ -66,7 +66,9 @@ public class SimplexNoiseRegionCommand implements TabExecutor {
 
         try {
             // WorldEdit pattern parser
-            pattern = WorldEdit.getInstance().getPatternFactory().parseFromInput(args[0], new ParserContext());
+            ParserContext parserContext = new ParserContext();
+            parserContext.setActor(actor);
+            pattern = WorldEdit.getInstance().getPatternFactory().parseFromInput(args[0], parserContext);
 
             // Amplitude parser
             amplitude = Integer.parseInt(args[1]);
@@ -91,6 +93,7 @@ public class SimplexNoiseRegionCommand implements TabExecutor {
                     .getSelection(actor.getWorld());
         } catch (InputParseException | NumberFormatException | IncompleteRegionException e) {
             sender.sendMessage(e.getLocalizedMessage());
+            e.printStackTrace();
             return false;
         }
 
@@ -103,6 +106,7 @@ public class SimplexNoiseRegionCommand implements TabExecutor {
             blocksChanged = generator.generate(session, pattern);
         } catch (MaxChangedBlocksException e) {
             sender.sendMessage(e.getLocalizedMessage());
+            e.printStackTrace();
             return false;
         }
 

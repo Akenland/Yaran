@@ -5,7 +5,7 @@
 
   <groupId>com.kylenanakdewa</groupId>
   <artifactId>Yaran</artifactId>
-  <version>1.1</version>
+  <version>1.2</version>
 
   <build>
     <sourceDirectory>${basedir}/src</sourceDirectory>

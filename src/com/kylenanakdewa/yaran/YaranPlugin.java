@@ -4,6 +4,7 @@ import com.kylenanakdewa.yaran.generators.MinimalChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexNoiseChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctave3dChunkGenerator;
 import com.kylenanakdewa.yaran.generators.SimplexOctaveChunkGenerator;
+import com.kylenanakdewa.yaran.generators.YaranChunkGenerator;
 import com.kylenanakdewa.yaran.worldedit.SimplexNoiseRegionCommand;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -49,6 +50,7 @@ public final class YaranPlugin extends JavaPlugin {
 		ConfigurationSection generatorSettings = getConfig().getConfigurationSection("generator-settings");
 		SimplexOctaveChunkGenerator.setParameters(generatorSettings);
 		SimplexNoiseChunkGenerator.setParameters(generatorSettings);
+		YaranChunkGenerator.setParameters(generatorSettings);
 	}
 
 	@Override
@@ -62,6 +64,8 @@ public final class YaranPlugin extends JavaPlugin {
 				return new SimplexOctave3dChunkGenerator();
 			case "simplex-noise":
 				return new SimplexNoiseChunkGenerator();
+			case "yaran-new":
+				return new YaranChunkGenerator();
 
 			default:
 				return super.getDefaultWorldGenerator(worldName, id);
