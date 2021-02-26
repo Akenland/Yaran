@@ -72,6 +72,53 @@ generator-settings:
       - 0.5
       - 0.25
 
+  yaran-new:
+    debug: false
+    final-height:
+      frequencies:
+      - "0.005:2"
+      - "0.0075:2"
+      - "0.05:0.25"
+      exponent: 3
+      sigmoid-multiplier: 0
+    continent-map:
+      frequencies:
+      - "0.001:1"
+      - "0.002:0.1"
+      - "0.003:0.01"
+      exponent: 1
+      sigmoid-multiplier: 5
+    min-height:
+      frequencies:
+      - "0.001:5"
+      - "0.002:1"
+      - "0.004:0.2"
+      - "0.008:0.04"
+      exponent: 2
+      sigmoid-multiplier: 20
+      sigmoid-scale: 0.15
+    max-height:
+      frequencies:
+      - "0.001:5"
+      - "0.002:1"
+      - "0.004:0.2"
+      - "0.008:0.04"
+      exponent: 1
+      sigmoid-multiplier: 5
+    temperature-map:
+      frequencies:
+      - "0.001:5"
+      - "0.002:1"
+      - "0.004:0.2"
+      - "0.008:0.04"
+    image-maps:
+      draw-debug-maps: true
+      offset:
+        x: -1024
+        z: -1024
+      width: 2048
+      height: 2048
+
 biome-color-mappings:
   0x00000070: ocean
   0x008DB360: plains

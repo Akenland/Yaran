@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import com.kylenanakdewa.yaran.generators.YaranChunkGenerator;
+
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.Command;
@@ -117,6 +119,13 @@ public final class YaranCommands implements TabExecutor {
             return true;
         }
 
+        // Save debug maps command
+        if (args.length == 1 && args[0].equalsIgnoreCase("savedebugmaps")) {
+            YaranChunkGenerator.saveDebugMaps(plugin.getDataFolder());
+            sender.sendMessage("Saved debug maps to Yaran plugin folder.");
+            return true;
+        }
+
         // Invalid command
         sender.sendMessage("Invalid arguments.");
         return false;
@@ -131,7 +140,7 @@ public final class YaranCommands implements TabExecutor {
 
         // Main command - return each sub-command
         if (args.length <= 1)
-            return Arrays.asList("version", "reload", "create", "recreate");
+            return Arrays.asList("version", "reload", "create", "recreate", "savedebugmaps");
 
         // Otherwise return nothing
         return Arrays.asList("");

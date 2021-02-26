@@ -23,6 +23,27 @@ public class ImageMap {
     /** The Z offset of the image, relative to the game world. */
     private int zOffset;
 
+    /**
+     * Creates a new blank image map.
+     *
+     * @param width   the total width of the image
+     * @param height  the total height of the image
+     * @param xOffset the X offset of the image, relative to the game world
+     * @param zOffset the Z offset of the image, relative to the game world
+     */
+    public ImageMap(int width, int height, int xOffset, int zOffset) {
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        this.xOffset = xOffset;
+        this.zOffset = zOffset;
+    }
+
+    /**
+     * Loads an existing image file.
+     *
+     * @param imageFile the image file to load
+     * @param xOffset   the X offset of the image, relative to the game world
+     * @param zOffset   the Z offset of the image, relative to the game world
+     */
     public ImageMap(File imageFile, int xOffset, int zOffset) {
         loadImageFile(imageFile);
         this.xOffset = xOffset;
@@ -37,6 +58,19 @@ public class ImageMap {
             image = ImageIO.read(file);
         } catch (IOException e) {
             Bukkit.getLogger().severe("Unable to load map image file: " + e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Saves the image to a file.
+     *
+     * @param file the file to save the image map to
+     */
+    public void saveImageFile(File file) {
+        try {
+            ImageIO.write(image, "png", file);
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("Unable to save map image file: " + e.getLocalizedMessage());
         }
     }
 
@@ -61,6 +95,29 @@ public class ImageMap {
         z -= zOffset;
 
         return getPixelColor(x, z);
+    }
+
+    /**
+     * Sets the color of a specific pixel on the image. If the specified pixel is
+     * out-of-bounds, does nothing.
+     */
+    public void setPixelColor(int x, int y, Color color) {
+        if (x >= image.getWidth() || y >= image.getHeight() || x < 0 || y < 0) {
+            return;
+        }
+
+        image.setRGB(x, y, color.getRGB());
+    }
+
+    /**
+     * Sets the color of a specified pixel on the image, using game world X/Z
+     * values. This will use the offset.
+     */
+    public void setPixelColorFromGame(int x, int z, Color color) {
+        x -= xOffset;
+        z -= zOffset;
+
+        setPixelColor(x, z, color);
     }
 
     /**

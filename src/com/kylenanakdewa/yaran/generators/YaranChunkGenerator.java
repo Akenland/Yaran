@@ -1,10 +1,13 @@
 package com.kylenanakdewa.yaran.generators;
 
+import java.awt.Color;
+import java.io.File;
 import java.util.Random;
 
 import com.kylenanakdewa.yaran.generation.YaranHeightmapGenerator;
 import com.kylenanakdewa.yaran.generation.YaranNoiseGenerator;
 import com.kylenanakdewa.yaran.generation.YaranHeightmapGenerator.HeightData;
+import com.kylenanakdewa.yaran.utils.imagemaps.ImageMap;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -95,6 +98,16 @@ public class YaranChunkGenerator extends ChunkGenerator {
      */
     // protected static DyeColorImageMap woolMap;
 
+    /**
+     * When debug maps are on, the generator internal functions will be visualized
+     * on image maps.
+     */
+    private static boolean drawDebugMaps;
+
+    private static ImageMap maxHeightMap;
+    private static ImageMap finalHeightMap;
+    private static ImageMap minHeightMap;
+
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("yaran-new");
 
@@ -111,29 +124,51 @@ public class YaranChunkGenerator extends ChunkGenerator {
         // cutoutFrequencies = configSection.getDoubleList("cutout-frequencies");
         // cutoutSizes = configSection.getDoubleList("cutout-sizes");
 
-        /*
-         * if (configSection.contains("image-maps", true)) { Plugin plugin =
-         * Bukkit.getPluginManager().getPlugin("Yaran");
-         *
-         * int xOffset = configSection.getInt("image-maps.offset.x", 0); int zOffset =
-         * configSection.getInt("image-maps.offset.z", 0);
-         *
-         * if (configSection.contains("image-maps.amplitude", true)) { String fileName =
-         * configSection.getString("image-maps.amplitude", "map_amplitude.png");
-         * altitudeMap = new GreyscaleImageMap(new File(plugin.getDataFolder(),
-         * fileName), xOffset, zOffset); } if
-         * (configSection.contains("image-maps.minimum-height", true)) { String fileName
-         * = configSection.getString("image-maps.minimum-height", "map_height.png");
-         * minHeightMap = new GreyscaleImageMap(new File(plugin.getDataFolder(),
-         * fileName), xOffset, zOffset); } if (configSection.contains("image-maps.wool",
-         * true)) { String fileName = configSection.getString("image-maps.wool",
-         * "map_wool.png"); woolMap = new DyeColorImageMap(new
-         * File(plugin.getDataFolder(), fileName), xOffset, zOffset); } if
-         * (configSection.contains("image-maps.biomes", true)) { String fileName =
-         * configSection.getString("image-maps.biomes", "map_biomes.png"); biomeMap =
-         * new BiomeImageMap(new File(plugin.getDataFolder(), fileName), xOffset,
-         * zOffset); } }
-         */
+        if (configSection.contains("image-maps", true)) {
+            int xOffset = configSection.getInt("image-maps.offset.x", 0);
+            int zOffset = configSection.getInt("image-maps.offset.z", 0);
+
+            /*
+             * if (configSection.contains("image-maps.amplitude", true)) { String fileName =
+             * configSection.getString("image-maps.amplitude", "map_amplitude.png");
+             * altitudeMap = new GreyscaleImageMap(new File(plugin.getDataFolder(),
+             * fileName), xOffset, zOffset); } if
+             * (configSection.contains("image-maps.minimum-height", true)) { String fileName
+             * = configSection.getString("image-maps.minimum-height", "map_height.png");
+             * minHeightMap = new GreyscaleImageMap(new File(plugin.getDataFolder(),
+             * fileName), xOffset, zOffset); } if (configSection.contains("image-maps.wool",
+             * true)) { String fileName = configSection.getString("image-maps.wool",
+             * "map_wool.png"); woolMap = new DyeColorImageMap(new
+             * File(plugin.getDataFolder(), fileName), xOffset, zOffset); } if
+             * (configSection.contains("image-maps.biomes", true)) { String fileName =
+             * configSection.getString("image-maps.biomes", "map_biomes.png"); biomeMap =
+             * new BiomeImageMap(new File(plugin.getDataFolder(), fileName), xOffset,
+             * zOffset); }
+             */
+
+            drawDebugMaps = configSection.getBoolean("image-maps.draw-debug-maps");
+            if (drawDebugMaps) {
+                int width = configSection.getInt("image-maps.width");
+                int height = configSection.getInt("image-maps.height");
+
+                maxHeightMap = new ImageMap(width, height, xOffset, zOffset);
+                finalHeightMap = new ImageMap(width, height, xOffset, zOffset);
+                minHeightMap = new ImageMap(width, height, xOffset, zOffset);
+            }
+        }
+    }
+
+    /**
+     * If debug maps are enabled, saves the resulting maps to the specified folder.
+     *
+     * Note that the maps will only contain data after the world has been generated.
+     *
+     * @param folder the folder to save the image files to
+     */
+    public static void saveDebugMaps(File folder) {
+        maxHeightMap.saveImageFile(new File(folder, "debug_map_max_height.png"));
+        finalHeightMap.saveImageFile(new File(folder, "debug_map_final_height.png"));
+        minHeightMap.saveImageFile(new File(folder, "debug_map_min_height.png"));
     }
 
     @Override
@@ -149,23 +184,27 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 int worldX = chunkX * 16 + x;
                 int worldZ = chunkZ * 16 + z;
 
+                // Use noise to calculate terrain height
+                HeightData heightData = generator.getHeightData(worldX, worldZ);
+
                 // Debug mode - show min height, max height, and final height
                 if (debugMode) {
-                    HeightData heightData = generator.getHeightData(worldX, worldZ);
                     chunk.setBlock(x, heightData.maxHeight, z, Material.GLASS);
                     chunk.setBlock(x, heightData.finalHeight, z, Material.GRASS_BLOCK);
                     chunk.setBlock(x, heightData.minHeight, z, Material.STONE);
                     chunk.setBlock(x, 0, z, Material.BEDROCK);
                 }
 
+                // Place blocks
                 else {
-                    // Use noise to calculate terrain height
-                    // int height = generator.getHeight(worldX, worldZ);
-                    HeightData heightData = generator.getHeightData(worldX, worldZ);
-
-                    // Place blocks
-                    // chunk = generateChunkBlocks(chunk, x, height, z);
                     chunk = generateChunkBlocks(world.getSeed(), chunk, biome, x, z, worldX, worldZ, heightData);
+                }
+
+                // Debug mode - draw min height, max height, and final height to image maps
+                if (drawDebugMaps) {
+                    maxHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, 0, heightData.maxHeight));
+                    finalHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, heightData.finalHeight, 0));
+                    minHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(heightData.minHeight, 0, 0));
                 }
 
                 // 3D cutouts
