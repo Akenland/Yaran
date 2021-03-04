@@ -109,6 +109,30 @@ public class YaranNoiseGenerator {
     }
 
     /**
+     * Adjusts a noise value in the 0..1 range, using the exponent and sigmoid
+     * values configured in this generator.
+     *
+     * @param noise the value to adjust, in the range 0..1
+     * @return the adjusted value
+     */
+    private double adjustNoise(double noise) {
+        // Raise noise to a power (redistribution)
+        noise = Math.pow(noise, exponent);
+
+        // Sigmoid function to create plateaus
+        if (sigmoidMultiplier != 0) {
+            if (sigmoidScale != 0 && sigmoidScale != 1) {
+                noise = YaranMath.staircaseSigmoid(noise, sigmoidMultiplier, sigmoidScale);
+            } else {
+                double k = 2 * sigmoidMultiplier * noise - sigmoidMultiplier;
+                noise = 1 / (1 + Math.pow(Math.E, -k));
+            }
+        }
+
+        return noise;
+    }
+
+    /**
      * Generates 2D noise for the specified coordinates, in the range 0..1.
      *
      * @param x the X coordinate to generate noise at
@@ -143,18 +167,8 @@ public class YaranNoiseGenerator {
         // Divide noise by sizes, to get back to 0..1 range
         noise /= totalSize;
 
-        // Raise noise to a power (redistribution)
-        noise = Math.pow(noise, exponent);
-
-        // Sigmoid function to create plateaus
-        if (sigmoidMultiplier != 0) {
-            if (sigmoidScale != 0 && sigmoidScale != 1) {
-                noise = YaranMath.staircaseSigmoid(noise, sigmoidMultiplier, sigmoidScale);
-            } else {
-                double k = 2 * sigmoidMultiplier * noise - sigmoidMultiplier;
-                noise = 1 / (1 + Math.pow(Math.E, -k));
-            }
-        }
+        // Adjust noise
+        noise = adjustNoise(noise);
 
         return noise;
     }
