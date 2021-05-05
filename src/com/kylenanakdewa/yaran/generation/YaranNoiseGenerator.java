@@ -124,8 +124,7 @@ public class YaranNoiseGenerator {
             if (sigmoidScale != 0 && sigmoidScale != 1) {
                 noise = YaranMath.staircaseSigmoid(noise, sigmoidMultiplier, sigmoidScale);
             } else {
-                double k = 2 * sigmoidMultiplier * noise - sigmoidMultiplier;
-                noise = 1 / (1 + Math.pow(Math.E, -k));
+                noise = YaranMath.sigmoid(noise, sigmoidMultiplier);
             }
         }
 
@@ -133,13 +132,17 @@ public class YaranNoiseGenerator {
     }
 
     /**
-     * Generates 2D noise for the specified coordinates, in the range 0..1.
+     * Generates raw/non-adjusted 2D noise for the specified coordinates, in the
+     * range 0..1.
+     *
+     * This will ignore the exponent and sigmoid values configured in this
+     * generator.
      *
      * @param x the X coordinate to generate noise at
      * @param z the Z coordinate to generate noise at
      * @return resulting noise at given location, in the range 0..1
      */
-    public double getNoise(int x, int z) {
+    public double getRawNoise(int x, int z) {
         double noise = 0;
 
         // Generate multiple layers of noise, in various frequencies
@@ -167,7 +170,22 @@ public class YaranNoiseGenerator {
         // Divide noise by sizes, to get back to 0..1 range
         noise /= totalSize;
 
-        // Adjust noise
+        return noise;
+    }
+
+    /**
+     * Generates 2D noise for the specified coordinates, in the range 0..1.
+     * <p>
+     * The noise will be adjusted using the exponent and sigmoid values configured
+     * in this generator.
+     *
+     * @param x the X coordinate to generate noise at
+     * @param z the Z coordinate to generate noise at
+     * @return resulting noise at given location, in the range 0..1
+     */
+    public double getNoise(int x, int z) {
+        double noise = getRawNoise(x, z);
+
         noise = adjustNoise(noise);
 
         return noise;
