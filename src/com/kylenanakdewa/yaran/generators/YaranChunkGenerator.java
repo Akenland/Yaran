@@ -7,6 +7,7 @@ import java.util.Random;
 import com.kylenanakdewa.yaran.generation.YaranHeightmapGenerator;
 import com.kylenanakdewa.yaran.generation.YaranNoiseGenerator;
 import com.kylenanakdewa.yaran.generation.YaranHeightmapGenerator.HeightData;
+import com.kylenanakdewa.yaran.utils.YaranMath;
 import com.kylenanakdewa.yaran.utils.imagemaps.ImageMap;
 
 import org.bukkit.Material;
@@ -59,6 +60,10 @@ public class YaranChunkGenerator extends ChunkGenerator {
      * The noise generator settings for generating the temperature map.
      */
     private static ConfigurationSection temperatureMapConfig;
+    /**
+     * The noise generator settings for generating the flying hills.
+     */
+    private static ConfigurationSection flyingHillsConfig;
 
     /**
      * Whether to perform 3D cutouts, creating overhangs and large caves.
@@ -107,6 +112,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
     private static ImageMap maxHeightMap;
     private static ImageMap finalHeightMap;
     private static ImageMap minHeightMap;
+    private static ImageMap flyingHillsMap;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("yaran-new");
@@ -118,6 +124,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
         minHeightConfig = configSection.getConfigurationSection("min-height");
         maxHeightConfig = configSection.getConfigurationSection("max-height");
         temperatureMapConfig = configSection.getConfigurationSection("temperature-map");
+        flyingHillsConfig = configSection.getConfigurationSection("flying-hills");
 
         // cutouts = configSection.getBoolean("cutouts");
         // cutoutThreshold = configSection.getDouble("cutout-threshold");
@@ -154,6 +161,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 maxHeightMap = new ImageMap(width, height, xOffset, zOffset);
                 finalHeightMap = new ImageMap(width, height, xOffset, zOffset);
                 minHeightMap = new ImageMap(width, height, xOffset, zOffset);
+                flyingHillsMap = new ImageMap(width, height, xOffset, zOffset);
             }
         }
     }
@@ -169,6 +177,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
         maxHeightMap.saveImageFile(new File(folder, "debug_map_max_height.png"));
         finalHeightMap.saveImageFile(new File(folder, "debug_map_final_height.png"));
         minHeightMap.saveImageFile(new File(folder, "debug_map_min_height.png"));
+        flyingHillsMap.saveImageFile(new File(folder, "debug_map_flying_hills.png"));
     }
 
     @Override
@@ -388,6 +397,34 @@ public class YaranChunkGenerator extends ChunkGenerator {
             // Stone
             for (int y = heightData.finalHeight - 4; y > 0; y--) {
                 chunk.setBlock(x, y, z, Material.STONE);
+            }
+        }
+
+        // Flying Hills
+        if (flyingHillsConfig.getBoolean("enabled")) {
+            long flyingHillsSeed = seed * "FLYING_HILLS".hashCode();
+            YaranNoiseGenerator flyingHillsGenerator = new YaranNoiseGenerator(flyingHillsConfig,
+                    new SimplexNoiseGenerator(flyingHillsSeed));
+            double flyingHillsNoise = flyingHillsGenerator.getNoise(worldX, worldZ);
+            if (drawDebugMaps) {
+                float colorValue = (float) flyingHillsNoise;
+                flyingHillsMap.setPixelColorFromGame(worldX, worldZ, new Color(colorValue, colorValue, colorValue));
+            }
+            for (int y = heightData.finalHeight; y < heightData.finalHeight + 50; y++) {
+                double yPercentage = YaranMath.rescale(y, heightData.finalHeight, heightData.finalHeight + 50, 0, 1);
+                // double threshold = 0.5 + 0.5 * Math.pow(yPercentage, 2);
+                double l = 1.25 * yPercentage - 1;
+                double threshold = 2 * (0.25 + Math.pow(l, 3) + Math.pow(l, 2));
+
+                if (flyingHillsNoise > threshold) {
+                    if (y < heightData.finalHeight + 48) {
+                        chunk.setBlock(x, y, z, Material.STONE);
+                    } else if (y < heightData.finalHeight + 50) {
+                        chunk.setBlock(x, y, z, Material.DIRT);
+                    } else {
+                        chunk.setBlock(x, y, z, Material.GRASS_BLOCK);
+                    }
+                }
             }
         }
 
