@@ -319,23 +319,24 @@ public class YaranChunkGenerator extends ChunkGenerator {
 
             // Pull minimum height towards the water level when near a coastline
             double minHeightNoise = heightData.minHeightNoise;
-            /*
-             * if (absoluteContinentValue < 0.5) { // When value is 0.5, exp is 1 // When
-             * value is 0, exp is 6 double exponent = 6 - (absoluteContinentValue * 10);
-             * minHeightNoise = Math.pow(minHeightNoise, exponent); }
-             */
+            if (absoluteContinentValue < 0.5) {
+                // When value is 0.5, exp is 1 // When value is 0, exp is 6
+                double exponent = 6 - (absoluteContinentValue * 10);
+                minHeightNoise = Math.pow(minHeightNoise, exponent);
+            }
 
             // Pull maximum height towards the water level when near a coastline
             double maxHeightNoise = heightData.maxHeightNoise;
-            /*
-             * if (absoluteContinentValue < 1) { // When value is 1, exp is 1 // When value
-             * is 0, exp is 6 double exponent = 6 - (absoluteContinentValue * 5);
-             * maxHeightNoise = Math.pow(maxHeightNoise, exponent); }
-             */
+            // if (absoluteContinentValue < 1) {
+            // When value is 1, exp is 1 // When value is 0, exp is 6
+            // double exponent = 6 - (absoluteContinentValue * 5);
+            // maxHeightNoise = Math.pow(maxHeightNoise, exponent);
+            // }
+            maxHeightNoise *= absoluteContinentValue;
 
             // Adjust final noise based on continent value
             double finalHeightNoise = heightData.finalHeightNoise;
-            finalHeightNoise *= absoluteContinentValue;
+            // finalHeightNoise *= absoluteContinentValue;
 
             // If land
             if (continentValue > 0) {
