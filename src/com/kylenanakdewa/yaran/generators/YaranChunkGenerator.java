@@ -327,8 +327,8 @@ public class YaranChunkGenerator extends ChunkGenerator {
             }
             // If ocean
             else {
-                // Terrain min height will be between y62 (-0) and y45 (-17)
-                int minHeightBelowWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 17);
+                // Terrain min height will be between y62 (-0) and y32 (-30)
+                int minHeightBelowWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 30);
                 minHeight -= minHeightBelowWater;
 
                 // Terrain max height will be y64, just above water level (allows islands)
