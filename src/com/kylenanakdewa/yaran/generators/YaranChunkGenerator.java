@@ -322,17 +322,17 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 int minHeightAboveWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 66);
                 minHeight += minHeightAboveWater;
 
-                // Terrain max height will be y224, 32 below world height limit
-                maxHeight = 224;
+                // Terrain max height will at most y224, 32 below world height limit
+                maxHeight = YaranMath.rescaleToInt(heightData.maxHeightNoise, 0, 1, minHeight, 224);
             }
             // If ocean
             else {
                 // Terrain min height will be between y62 (-0) and y45 (-17)
-                int minHeightAboveWater = -YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 17);
-                minHeight += minHeightAboveWater;
+                int minHeightBelowWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 17);
+                minHeight -= minHeightBelowWater;
 
                 // Terrain max height will be y64, just above water level (allows islands)
-                maxHeight = 64;
+                maxHeight = YaranMath.rescaleToInt(heightData.maxHeightNoise, 0, 1, minHeight, 64);
             }
             // Final terrain height
             finalHeight = YaranMath.rescaleToInt(heightData.finalHeightNoise, 0, 1, minHeight, maxHeight);
