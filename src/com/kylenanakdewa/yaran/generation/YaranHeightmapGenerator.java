@@ -1,5 +1,7 @@
 package com.kylenanakdewa.yaran.generation;
 
+import com.kylenanakdewa.yaran.utils.YaranMath;
+
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
 
@@ -67,26 +69,46 @@ public class YaranHeightmapGenerator {
      * @return the terrain minimum height, maximum height, and final height
      */
     public HeightData getHeightData(int x, int z) {
-        //int seaFloor = continentMapGenerator.getScaledNoise(x, z, 45, 61);
-        int minHeight = minHeightGenerator.getScaledNoise(x, z, 45, 128);
-        int maxHeight = maxHeightGenerator.getScaledNoise(x, z, minHeight, 224);
-        int finalHeight = finalHeightGenerator.getScaledNoise(x, z, minHeight, maxHeight);
+        /*
+         * // int seaFloor = continentMapGenerator.getScaledNoise(x, z, 45, 61); int
+         * minHeight = minHeightGenerator.getScaledNoise(x, z, 45, 128); int maxHeight =
+         * maxHeightGenerator.getScaledNoise(x, z, minHeight, 224); int finalHeight =
+         * finalHeightGenerator.getScaledNoise(x, z, minHeight, maxHeight);
+         *
+         * return new HeightData(minHeight, maxHeight, finalHeight);
+         */
 
-        return new HeightData(minHeight, maxHeight, finalHeight);
+        return new HeightData(x, z);
     }
 
     /**
      * Contains the minimum height, maximum height, and final height of the terrain.
      */
     public class HeightData {
+        public final double continentNoise;
+        public final double minHeightNoise;
+        public final double maxHeightNoise;
+        public final double finalHeightNoise;
+
         public final int minHeight;
         public final int maxHeight;
         public final int finalHeight;
 
-        private HeightData(int minHeight, int maxHeight, int finalHeight) {
-            this.minHeight = minHeight;
-            this.maxHeight = maxHeight;
-            this.finalHeight = finalHeight;
+        /*
+         * private HeightData(int minHeight, int maxHeight, int finalHeight) {
+         * this.minHeight = minHeight; this.maxHeight = maxHeight; this.finalHeight =
+         * finalHeight; }
+         */
+
+        private HeightData(int x, int z) {
+            continentNoise = continentMapGenerator.getNoise(x, z);
+            minHeightNoise = minHeightGenerator.getNoise(x, z);
+            maxHeightNoise = maxHeightGenerator.getNoise(x, z);
+            finalHeightNoise = finalHeightGenerator.getNoise(x, z);
+
+            minHeight = YaranMath.rescaleToInt(minHeightNoise, 0, 1, 45, 128);
+            maxHeight = YaranMath.rescaleToInt(maxHeightNoise, 0, 1, minHeight, 224);
+            finalHeight = YaranMath.rescaleToInt(finalHeightNoise, 0, 1, minHeight, maxHeight);
         }
     }
 

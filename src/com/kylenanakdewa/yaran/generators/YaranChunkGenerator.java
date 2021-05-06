@@ -32,6 +32,12 @@ public class YaranChunkGenerator extends ChunkGenerator {
     private static boolean debugMode;
 
     /**
+     * Enables the new Yaran continent generator, which generates more realistic and
+     * tunable continents and oceans, by splitting up land vs. ocean functions.
+     */
+    private static boolean useContinentGenerator;
+
+    /**
      * The noise generator settings for generating the final terrain height.
      */
     private static ConfigurationSection finalHeightConfig;
@@ -112,12 +118,15 @@ public class YaranChunkGenerator extends ChunkGenerator {
     private static ImageMap maxHeightMap;
     private static ImageMap finalHeightMap;
     private static ImageMap minHeightMap;
+    private static ImageMap continentMap;
     private static ImageMap flyingHillsMap;
 
     public static void setParameters(ConfigurationSection configSection) {
         configSection = configSection.getConfigurationSection("yaran-new");
 
         debugMode = configSection.getBoolean("debug");
+
+        useContinentGenerator = configSection.getBoolean("use-continent-generator");
 
         finalHeightConfig = configSection.getConfigurationSection("final-height");
         continentMapConfig = configSection.getConfigurationSection("continent-map");
@@ -161,6 +170,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 maxHeightMap = new ImageMap(width, height, xOffset, zOffset);
                 finalHeightMap = new ImageMap(width, height, xOffset, zOffset);
                 minHeightMap = new ImageMap(width, height, xOffset, zOffset);
+                continentMap = new ImageMap(width, height, xOffset, zOffset);
                 flyingHillsMap = new ImageMap(width, height, xOffset, zOffset);
             }
         }
@@ -177,6 +187,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
         maxHeightMap.saveImageFile(new File(folder, "debug_map_max_height.png"));
         finalHeightMap.saveImageFile(new File(folder, "debug_map_final_height.png"));
         minHeightMap.saveImageFile(new File(folder, "debug_map_min_height.png"));
+        continentMap.saveImageFile(new File(folder, "debug_map_continent.png"));
         flyingHillsMap.saveImageFile(new File(folder, "debug_map_flying_hills.png"));
     }
 
@@ -210,11 +221,17 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 }
 
                 // Debug mode - draw min height, max height, and final height to image maps
-                if (drawDebugMaps) {
-                    maxHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, 0, heightData.maxHeight));
-                    finalHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, heightData.finalHeight, 0));
-                    minHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(heightData.minHeight, 0, 0));
-                }
+                /*
+                 * if (drawDebugMaps) { maxHeightMap.setPixelColorFromGame(worldX, worldZ, new
+                 * Color(0, 0, heightData.maxHeight));
+                 * finalHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0,
+                 * heightData.finalHeight, 0)); minHeightMap.setPixelColorFromGame(worldX,
+                 * worldZ, new Color(heightData.minHeight, 0, 0));
+                 *
+                 * float continentColorValue = (float) heightData.continentNoise;
+                 * continentMap.setPixelColorFromGame(worldX, worldZ, new
+                 * Color(continentColorValue, continentColorValue, continentColorValue)); }
+                 */
 
                 // 3D cutouts
                 // chunk = generate3dCutouts(chunk, generator, x, z, worldX, height, worldZ);
@@ -277,18 +294,68 @@ public class YaranChunkGenerator extends ChunkGenerator {
 
     private ChunkData generateChunkBlocks(long seed, ChunkData chunk, BiomeGrid biome, int x, int z, int worldX,
             int worldZ, HeightData heightData) {
-        int heightDifference = heightData.finalHeight - heightData.minHeight;
 
+        //// TEMPERATURE
         // Currently designed around cold maps
         long temperatureSeed = seed * "TEMPERATURE".hashCode();
         YaranNoiseGenerator temperatureMap = new YaranNoiseGenerator(temperatureMapConfig,
                 new SimplexNoiseGenerator(temperatureSeed));
         double temperature = temperatureMap.getNoise(worldX, worldZ);
 
+        //// HEIGHT VALUES
+        int minHeight = heightData.minHeight;
+        int maxHeight = heightData.maxHeight;
+        int finalHeight = heightData.finalHeight;
+
+        // Continent generator - Updated height values - Water level relative
+        if (useContinentGenerator) {
+
+            // Whether continent should generate: +1 for land, 0 for coastline, -1 for ocean
+            double continentValue = YaranMath.rescale(heightData.continentNoise, 0, 1, -1, 1);
+
+            // Minimum terrain height, y-value, start at water level
+            minHeight = 61;
+
+            // If land
+            if (continentValue > 0) {
+                // Terrain min height will be between y62 (0) and y128 (+66)
+                int minHeightAboveWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 66);
+                minHeight += minHeightAboveWater;
+
+                // Terrain max height will be y224, 32 below world height limit
+                maxHeight = 224;
+            }
+            // If ocean
+            else {
+                // Terrain min height will be between y62 (-0) and y45 (-17)
+                int minHeightAboveWater = -YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 17);
+                minHeight += minHeightAboveWater;
+
+                // Terrain max height will be y64, just above water level (allows islands)
+                maxHeight = 64;
+            }
+            // Final terrain height
+            finalHeight = YaranMath.rescaleToInt(heightData.finalHeightNoise, 0, 1, minHeight, maxHeight);
+        }
+
+        int heightDifference = finalHeight - minHeight;
+
+        // Debug mode - draw min height, max height, and final height to image maps
+        if (drawDebugMaps) {
+            maxHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, 0, maxHeight));
+            finalHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(0, finalHeight, 0));
+            minHeightMap.setPixelColorFromGame(worldX, worldZ, new Color(minHeight, 0, 0));
+
+            float continentColorValue = (float) heightData.continentNoise;
+            continentMap.setPixelColorFromGame(worldX, worldZ,
+                    new Color(continentColorValue, continentColorValue, continentColorValue));
+        }
+
+        //// TERRAIN
         // Water
-        if (heightData.finalHeight <= 63) {
+        if (finalHeight <= 63) {
             // Beach
-            if (heightData.finalHeight >= 60) {
+            if (finalHeight >= 60) {
                 // Set beach biome
                 Biome beachBiome = temperature > 0.5 ? Biome.BEACH : Biome.SNOWY_BEACH;
                 for (int y = 0; y < 256; y++) {
@@ -296,7 +363,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 }
 
                 // Sand on beaches
-                for (int y = heightData.finalHeight; y > heightData.finalHeight - 4; y--) {
+                for (int y = finalHeight; y > finalHeight - 4; y--) {
                     chunk.setBlock(x, y, z, Material.SAND);
                 }
 
@@ -312,18 +379,18 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 }
 
                 // Gravel seabed
-                for (int y = heightData.finalHeight; y > heightData.finalHeight - 4; y--) {
+                for (int y = finalHeight; y > finalHeight - 4; y--) {
                     chunk.setBlock(x, y, z, Material.GRAVEL);
                 }
             }
 
             // Stone below
-            for (int y = heightData.finalHeight - 4; y > 0; y--) {
+            for (int y = finalHeight - 4; y > 0; y--) {
                 chunk.setBlock(x, y, z, Material.STONE);
             }
 
             // Water
-            for (int y = 62; y > heightData.finalHeight; y--) {
+            for (int y = 62; y > finalHeight; y--) {
                 chunk.setBlock(x, y, z, Material.WATER);
             }
         }
@@ -346,15 +413,15 @@ public class YaranChunkGenerator extends ChunkGenerator {
             }
 
             // Grass
-            chunk.setBlock(x, heightData.finalHeight, z, Material.GRASS_BLOCK);
+            chunk.setBlock(x, finalHeight, z, Material.GRASS_BLOCK);
 
             // Dirt
-            for (int y = heightData.finalHeight - 1; y > heightData.finalHeight - 4; y--) {
+            for (int y = finalHeight - 1; y > finalHeight - 4; y--) {
                 chunk.setBlock(x, y, z, Material.DIRT);
             }
 
             // Stone
-            for (int y = heightData.finalHeight - 4; y > 0; y--) {
+            for (int y = finalHeight - 4; y > 0; y--) {
                 chunk.setBlock(x, y, z, Material.STONE);
             }
         }
@@ -377,14 +444,14 @@ public class YaranChunkGenerator extends ChunkGenerator {
             }
 
             // Top ground cover
-            for (int y = heightData.finalHeight; y > heightData.finalHeight - 4; y--) {
+            for (int y = finalHeight; y > finalHeight - 4; y--) {
                 // Random chance
                 Random random = new Random(seed * worldX * worldZ);
                 double randomValue = random.nextDouble();
                 Material blockToPlace;
                 // 50% chance of grass/dirt, 25% chance of gravel, 25% chance of stone
                 if (randomValue > 0.5) {
-                    blockToPlace = (y == heightData.finalHeight) ? Material.GRASS_BLOCK : Material.DIRT;
+                    blockToPlace = (y == finalHeight) ? Material.GRASS_BLOCK : Material.DIRT;
                 } else if (randomValue > 0.25) {
                     blockToPlace = Material.GRAVEL;
                 } else {
@@ -395,11 +462,12 @@ public class YaranChunkGenerator extends ChunkGenerator {
             }
 
             // Stone
-            for (int y = heightData.finalHeight - 4; y > 0; y--) {
+            for (int y = finalHeight - 4; y > 0; y--) {
                 chunk.setBlock(x, y, z, Material.STONE);
             }
         }
 
+        //// OTHER FEATURES
         // Flying Hills
         if (flyingHillsConfig.getBoolean("enabled")) {
             long flyingHillsSeed = seed * "FLYING_HILLS".hashCode();
@@ -410,16 +478,16 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 float colorValue = (float) flyingHillsNoise;
                 flyingHillsMap.setPixelColorFromGame(worldX, worldZ, new Color(colorValue, colorValue, colorValue));
             }
-            for (int y = heightData.finalHeight; y < heightData.finalHeight + 50; y++) {
-                double yPercentage = YaranMath.rescale(y, heightData.finalHeight, heightData.finalHeight + 50, 0, 1);
+            for (int y = finalHeight; y < finalHeight + 50; y++) {
+                double yPercentage = YaranMath.rescale(y, finalHeight, finalHeight + 50, 0, 1);
                 // double threshold = 0.5 + 0.5 * Math.pow(yPercentage, 2);
                 double l = 1.25 * yPercentage - 1;
                 double threshold = 2 * (0.25 + Math.pow(l, 3) + Math.pow(l, 2));
 
                 if (flyingHillsNoise > threshold) {
-                    if (y < heightData.finalHeight + 48) {
+                    if (y < finalHeight + 48) {
                         chunk.setBlock(x, y, z, Material.STONE);
-                    } else if (y < heightData.finalHeight + 50) {
+                    } else if (y < finalHeight + 50) {
                         chunk.setBlock(x, y, z, Material.DIRT);
                     } else {
                         chunk.setBlock(x, y, z, Material.GRASS_BLOCK);

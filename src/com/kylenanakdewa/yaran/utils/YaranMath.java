@@ -70,4 +70,27 @@ public final class YaranMath {
         return (newMax - newMin) * (x - oldMin) / (oldMax - oldMin) + newMin;
     }
 
+    /**
+     * Rescales a value from the range oldMin..oldMax to the range newMin..newMax.
+     * All min and max values are inclusive.
+     * <p>
+     * For example, rescaling the value 0.5 in the old range 0..1, to the new range
+     * 50..100, will return 75.
+     * <p>
+     * To normalize values into the 0..1 range, use 0 and 1 as newMin and newMax,
+     * respectively.
+     * <p>
+     * The output will be rounded to the nearest integer.
+     *
+     * @param x      the value to adjust
+     * @param oldMin the original scale's minimum value, inclusive
+     * @param oldMax the original scale's maximum value, inclusive
+     * @param newMin the new scale's minimum value, inclusive
+     * @param newMax the new scale's maximum value, inclusive
+     * @return the adjusted value
+     */
+    public static int rescaleToInt(double x, double oldMin, double oldMax, int newMin, int newMax) {
+        return (int) Math.round(rescale(x, oldMin, oldMax, newMin, newMax));
+    }
+
 }
