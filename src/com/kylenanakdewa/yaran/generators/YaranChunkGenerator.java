@@ -330,8 +330,8 @@ public class YaranChunkGenerator extends ChunkGenerator {
             double maxHeightNoise = heightData.maxHeightNoise;
             if (absoluteContinentValue < 1) {
                 // When value is 1, exp is 1
-                // When value is 0, exp is 3
-                double exponent = 3 - (absoluteContinentValue * 2);
+                // When value is 0, exp is 6
+                double exponent = 6 - (absoluteContinentValue * 5);
                 maxHeightNoise = Math.pow(maxHeightNoise, exponent);
             }
 
