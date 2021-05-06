@@ -316,10 +316,20 @@ public class YaranChunkGenerator extends ChunkGenerator {
             // Minimum terrain height, y-value, start at water level
             minHeight = 61;
 
+            // Pull minimum height towards the water level when near a coastline
+            double absoluteContinentValue = Math.abs(continentValue);
+            double minHeightNoise = heightData.minHeightNoise;
+            if (absoluteContinentValue < 0.5) {
+                // When value is 0.5, exp is 1
+                // When value is 0, exp is 6
+                double exponent = 6 - (absoluteContinentValue * 10);
+                minHeightNoise = Math.pow(minHeightNoise, exponent);
+            }
+
             // If land
             if (continentValue > 0) {
                 // Terrain min height will be between y62 (0) and y128 (+66)
-                int minHeightAboveWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 66);
+                int minHeightAboveWater = YaranMath.rescaleToInt(minHeightNoise, 0, 1, 0, 66);
                 minHeight += minHeightAboveWater;
 
                 // Terrain max height will at most y224, 32 below world height limit
@@ -328,7 +338,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
             // If ocean
             else {
                 // Terrain min height will be between y62 (-0) and y32 (-30)
-                int minHeightBelowWater = YaranMath.rescaleToInt(heightData.minHeightNoise, 0, 1, 0, 30);
+                int minHeightBelowWater = YaranMath.rescaleToInt(minHeightNoise, 0, 1, 0, 30);
                 minHeight -= minHeightBelowWater;
 
                 // Terrain max height will be y64, just above water level (allows islands)
