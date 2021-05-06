@@ -116,9 +116,6 @@ public class YaranNoiseGenerator {
      * @return the adjusted value
      */
     private double adjustNoise(double noise) {
-        // Raise noise to a power (redistribution)
-        noise = Math.pow(noise, exponent);
-
         // Sigmoid function to create plateaus
         if (sigmoidMultiplier != 0) {
             if (sigmoidScale != 0 && sigmoidScale != 1) {
@@ -127,6 +124,9 @@ public class YaranNoiseGenerator {
                 noise = YaranMath.sigmoid(noise, sigmoidMultiplier);
             }
         }
+
+        // Raise noise to a power (redistribution)
+        noise = Math.pow(noise, exponent);
 
         return noise;
     }
