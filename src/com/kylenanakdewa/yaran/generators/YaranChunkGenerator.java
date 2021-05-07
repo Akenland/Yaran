@@ -321,8 +321,8 @@ public class YaranChunkGenerator extends ChunkGenerator {
             double minHeightNoise = heightData.minHeightNoise;
             if (absoluteContinentValue < 0.5) {
                 // When value is 0.5, exp is 1
-                // When value is 0, exp is 4
-                double exponent = 4 - (absoluteContinentValue * 6);
+                // When value is 0, exp is 3.5
+                double exponent = 3.5 - (absoluteContinentValue * 5);
                 minHeightNoise = Math.pow(minHeightNoise, exponent);
             }
 
@@ -331,8 +331,8 @@ public class YaranChunkGenerator extends ChunkGenerator {
             maxHeightNoise *= absoluteContinentValue;
             if (absoluteContinentValue < 0.5) {
                 // When value is 0.5, exp is 1
-                // When value is 0, exp is 6
-                double exponent = 6 - (absoluteContinentValue * 10);
+                // When value is 0, exp is 10
+                double exponent = 10 - (absoluteContinentValue * 18);
                 maxHeightNoise = Math.pow(maxHeightNoise, exponent);
             }
 
