@@ -329,11 +329,14 @@ public class YaranChunkGenerator extends ChunkGenerator {
             // Pull maximum height towards the water level when near a coastline
             double maxHeightNoise = heightData.maxHeightNoise;
             //maxHeightNoise *= absoluteContinentValue;
-            if (absoluteContinentValue < 0.5) {
+            if (absoluteContinentValue < 1) {
                 // When value is 0.5, exp is 1
                 // When value is 0, exp is 10
-                double exponent = 10 - (absoluteContinentValue * 18);
-                maxHeightNoise = Math.pow(maxHeightNoise, exponent);
+                // double exponent = 10 - (absoluteContinentValue * 18);
+                // maxHeightNoise = Math.pow(maxHeightNoise, exponent);
+
+                // Sigmoid attempt
+                maxHeightNoise = YaranMath.sigmoid(maxHeightNoise, 10);
             }
 
             // Adjust final noise based on continent value
