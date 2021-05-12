@@ -336,7 +336,7 @@ public class YaranChunkGenerator extends ChunkGenerator {
                 // maxHeightNoise = Math.pow(maxHeightNoise, exponent);
 
                 // Sigmoid attempt
-                maxHeightNoise = YaranMath.sigmoid(maxHeightNoise, 10);
+                maxHeightNoise *= YaranMath.sigmoid(absoluteContinentValue, 10);
             }
 
             // Adjust final noise based on continent value
